@@ -1,44 +1,60 @@
-.App {
-  text-align: center;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.button{
+  padding:20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
 
-.App-header {
-  background-color: #282c34;
+
+body{
+  display: grid;
+  place-items: center;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .deleteButton img {
-  width: 10px;  /* Set the image width */
-  height: 10px; /* Set the image height */
+  width: 20px;  /* Set the image width */
   object-fit: contain; /* Ensures the image maintains aspect ratio */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+button{
+  background-color: #d3d3d3;
+  border: none;
+  border-radius: 15%;
+  padding: .5rem 1rem;
+  margin: .3rem;
+  font-size: 1.3rem;
+  color: white;
+  width: 50px;
+  height: 50px;
+}
+
+.enterButton { 
+  text-transform: capitalize;
+  width: 100px;
+ }
+
+.textarea{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+textarea{
+  width: 100%;
+  height: 150px;
+  resize: none;
+  padding: .5rem;
+  font-size: 1.2rem;
+  outline: none;
+  border:2px solid aqua;
+  border-radius: .5rem;
+
 }

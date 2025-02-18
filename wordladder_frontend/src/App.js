@@ -1,55 +1,103 @@
-import logo from './logo.svg';
 import './App.css';
 import { Component } from 'react';
 
 class Header extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      text: '', // Store textarea content
+    };
+  }
+
+  componentDidMount() {
+    document.addEventListener('keydown', this.handleKeyPress);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKeyPress);
+  }
+
+  handleKeyPress = (event) => {
+    const { key } = event;
+    
+    if (key === 'Backspace') {
+      this.handleDelete(); // Delete character when pressing Backspace
+    }
+    else if (/[a-zA-Z]/.test(key)) {
+      // Allow only letters (A-Z, a-z)
+      this.setState((prevState) => ({
+        text: prevState.text + key.toUpperCase(), // Convert to uppercase
+      }));
+    } else if (key === 'Enter') {
+      this.setState((prevState) => ({
+        text: prevState.text + '\n', // Add a new line
+      }));
+    }
+  };
+
+  handleButtonClick = (char) => {
+    this.setState((prevState) => ({
+      text: prevState.text + char,
+    }));
+  };
+
+  handleDelete = () => {
+    this.setState((prevState) => ({
+      text: prevState.text.slice(0, -1), // Remove the last character
+    }));
+  };
+
   render() {
     return (
-      <div class="container">
-        <div class="textarea">
-          <textarea></textarea>
+      <div className="container">
+        <div className="textarea">
+          <textarea value={this.state.text} readOnly></textarea>
         </div>
-        <div class="keyboard">
-        <div class="keyboardRow">
-          <button class="button characterButton">q</button>
-          <button class="button characterButton">w</button>
-          <button class="button characterButton">e</button>
-          <button class="button characterButton">r</button>
-          <button class="button characterButton">t</button>
-          <button class="button characterButton">y</button>
-          <button class="button characterButton">u</button>
-          <button class="button characterButton">i</button>
-          <button class="button characterButton">o</button>
-          <button class="button characterButton">p</button>
+        <div className="keyboard">
+          <div className="keyboardRow">
+            {'QWERTYUIOP'.split('').map((char) => (
+              <button
+                key={char}
+                className="button characterButton"
+                onClick={() => this.handleButtonClick(char)}
+              >
+                {char}
+              </button>
+            ))}
           </div>
-          <div class="keyboardRow">
-            <div class="keyboardSpacer">
+          <div className="keyboardRow">
+            <div className="keyboardSpacer"></div>
+            {'ASDFGHJKL'.split('').map((char) => (
+              <button
+                key={char}
+                className="button characterButton"
+                onClick={() => this.handleButtonClick(char)}
+              >
+                {char}
+              </button>
+            ))}
+            <div className="keyboardSpacer"></div>
           </div>
-          <button class="button characterButton">a</button>
-          <button class="button characterButton">s</button>
-          <button class="button characterButton">d</button>
-          <button class="button characterButton">f</button>
-          <button class="button characterButton">g</button>
-          <button class="button characterButton">h</button>
-          <button class="button characterButton">j</button>
-          <button class="button characterButton">k</button>
-          <button class="button characterButton">l</button>
-          <div class="keyboardSpacer"></div>
-          </div>
-          <div class="keyboardRow">
-            <button class="button enterButton">Enter</button>
-            <button class="button characterButton">z</button>
-            <button class="button characterButton">x</button>
-            <button class="button characterButton">c</button>
-            <button class="button characterButton">v</button>
-            <button class="button characterButton">b</button>
-            <button class="button characterButton">n</button>
-            <button class="button characterButton">m</button>
-            <button class="button deleteButton">
-            <img src="https://static-00.iconduck.com/assets.00/backspace-icon-2048x1509-3pqr8k29.png" alt="Button Image"></img>           
-        <path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z"></path>
+          <div className="keyboardRow">
+            <button className="button enterButton" onClick={() => this.handleButtonClick('\n')}>
+              Enter
             </button>
-        </div>
+            {'ZXCVBNM'.split('').map((char) => (
+              <button
+                key={char}
+                className="button characterButton"
+                onClick={() => this.handleButtonClick(char)}
+              >
+                {char}
+              </button>
+            ))}
+            <button className="button deleteButton" onClick={this.handleDelete}>
+              <img
+                src="https://static-00.iconduck.com/assets.00/backspace-icon-2048x1509-3pqr8k29.png"
+                alt="-"
+              />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -59,7 +107,7 @@ class Header extends Component {
 function App() {
   return (
     <div>
-      <Header></Header>
+      <Header />
     </div>
   );
 }
