@@ -1,15 +1,16 @@
 import './App.css';
-import { Component, useState , createRef } from 'react';
+import { Component , createRef } from 'react';
 
 const heuristic = {
   technique: "A* Search",
-  startword: "sea",
-  endword: "bee",
+  startword: "NEED",
+  endword: "WHEN",
   optimal: 12,
   path: ["reseal", "reseat", "resent", "resend", "reseed", "rested", "tested", "tasted", "tauted", "dauted", "daubed", "dabbed", "dubbed"],
   space: "0.45 KB",
   time: "0.1160 sec"
 }
+
 
 class Header extends Component {
   constructor(props) {
@@ -18,6 +19,7 @@ class Header extends Component {
       text: '', // Store textarea content
       startword: heuristic.startword,
       endword: heuristic.endword,
+      wordlength : heuristic.startword.length
     };
     this.textAreaRef = createRef(); // สร้าง ref
 
@@ -37,14 +39,15 @@ class Header extends Component {
     if (key === 'Backspace') {
       this.handleDelete(); // Delete character when pressing Backspace
     }
+    else if (key === 'Enter') {
+      this.setState((prevState) => ({
+        text: prevState.text + '\n', // Add a new line
+      }));
+    }
     else if (/[a-zA-Z]/.test(key)) {
       // Allow only letters (A-Z, a-z)
       this.setState((prevState) => ({
         text: prevState.text + key.toUpperCase(), // Convert to uppercase
-      }));
-    } else if (key === 'Enter') {
-      this.setState((prevState) => ({
-        text: prevState.text + '\n', // Add a new line
       }));
     }
   };
@@ -62,6 +65,14 @@ class Header extends Component {
   };
 
   render() {
+    let textareas = []; // Create an empty array
+
+    // Use for loop to push textarea elements
+    for (let i = 0; i < this.state.wordlength; i++) {
+      textareas.push(<textarea className="inputBox" readOnly></textarea>);
+    }
+
+
     return (
       <div className="container">
         <div class="gameplay">
@@ -76,10 +87,21 @@ class Header extends Component {
               </textarea>
             ))}      
           </div>
-          <div className="textarea input">           
-            <textarea ref={this.textAreaRef} className={this.state.text ? "textarea input filled" : "textarea input current"} value={this.state.text} readOnly></textarea>
-            <textarea class="" value={this.state.text} readOnly></textarea>
-            <textarea class="" value={this.state.text} readOnly></textarea>
+          <div className="textarea input"> {textareas}
+            {/* version 1 */}
+            {/* {this.state.text.split('').map((char) => (
+                <textarea
+                  value={char}
+                  className=""
+                  readOnly
+                >
+                  {char}
+                </textarea>
+              ))}   */}
+              {/* version 2 */}             
+              {/* <textarea ref={this.textAreaRef} className={this.state.text ? "textarea input filled" : "textarea input current"} value={this.state.text} readOnly></textarea>
+              <textarea class="" value={this.state.text} readOnly></textarea>
+              <textarea class="" value={this.state.text} readOnly></textarea> */}
           </div>
           <div className="textarea endword">
             {this.state.endword.split('').map((char) => (
