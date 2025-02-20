@@ -1,5 +1,5 @@
 import './App.css';
-import { Component, useState } from 'react';
+import { Component, useState , createRef } from 'react';
 
 const heuristic = {
   technique: "A* Search",
@@ -17,8 +17,10 @@ class Header extends Component {
     this.state = {
       text: '', // Store textarea content
       startword: heuristic.startword,
-      endword: heuristic.endword
+      endword: heuristic.endword,
     };
+    this.textAreaRef = createRef(); // สร้าง ref
+
   }
 
   componentDidMount() {
@@ -74,8 +76,8 @@ class Header extends Component {
               </textarea>
             ))}      
           </div>
-          <div className="textarea input">            
-            <textarea class="" value={this.state.text} readOnly></textarea>
+          <div className="textarea input">           
+            <textarea ref={this.textAreaRef} className={this.state.text ? "textarea input filled" : "textarea input current"} value={this.state.text} readOnly></textarea>
             <textarea class="" value={this.state.text} readOnly></textarea>
             <textarea class="" value={this.state.text} readOnly></textarea>
           </div>
@@ -151,3 +153,41 @@ function App() {
 }
 
 export default App;
+
+
+// -----------------------------------------------------------------------------------------------------------------------
+
+
+// import React, { Component, createRef } from "react";
+
+// class TextAreaComponent extends Component {
+//   constructor(props) {
+//     super(props);
+//     this.state = { text: "", word : "e" };
+//     this.textAreaRef = createRef(); // สร้าง ref
+//   }
+
+//   checkClassName = () => {
+//     if (this.textAreaRef.current) {
+//       console.log(this.textAreaRef.current.classList.contains("filled")); // true หรือ false
+//     }
+//   };
+
+//   render() {
+//     return (
+//       <div>
+//         <textarea
+//           ref={this.textAreaRef}
+//           className={this.state.text ? "filled" : "current"}
+//           // value={ this.state.text}
+//           value={ this.state.text}
+//           onChange={(e) => this.setState({ text: e.target.value })}
+//           placeholder="Type something..."
+//         ></textarea>
+//         {/* <button onClick={this.checkClassName}>Check Class</button> */}
+//       </div>
+//     );
+//   }
+// }
+
+// export default TextAreaComponent;
