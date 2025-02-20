@@ -1,11 +1,23 @@
 import './App.css';
-import { Component } from 'react';
+import { Component, useState } from 'react';
+
+const heuristic = {
+  technique: "A* Search",
+  startword: "sea",
+  endword: "bee",
+  optimal: 12,
+  path: ["reseal", "reseat", "resent", "resend", "reseed", "rested", "tested", "tasted", "tauted", "dauted", "daubed", "dabbed", "dubbed"],
+  space: "0.45 KB",
+  time: "0.1160 sec"
+}
 
 class Header extends Component {
   constructor(props) {
     super(props);
     this.state = {
       text: '', // Store textarea content
+      startword: heuristic.startword,
+      endword: heuristic.endword
     };
   }
 
@@ -50,8 +62,34 @@ class Header extends Component {
   render() {
     return (
       <div className="container">
-        <div className="textarea">
-          <textarea value={this.state.text} readOnly></textarea>
+        <div class="gameplay">
+          <div className="textarea startword">      
+            {this.state.startword.split('').map((char) => (
+              <textarea
+                value={char}
+                className=""
+                readOnly
+              >
+                {char}
+              </textarea>
+            ))}      
+          </div>
+          <div className="textarea input">            
+            <textarea class="" value={this.state.text} readOnly></textarea>
+            <textarea class="" value={this.state.text} readOnly></textarea>
+            <textarea class="" value={this.state.text} readOnly></textarea>
+          </div>
+          <div className="textarea endword">
+            {this.state.endword.split('').map((char) => (
+                <textarea
+                  value={char}
+                  className=""
+                  readOnly
+                >
+                  {char}
+                </textarea>
+              ))}            
+          </div>
         </div>
         <div className="keyboard">
           <div className="keyboardRow">
@@ -107,7 +145,7 @@ class Header extends Component {
 function App() {
   return (
     <div>
-      <Header />
+      <Header/>
     </div>
   );
 }
