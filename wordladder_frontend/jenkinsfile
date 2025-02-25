@@ -15,7 +15,7 @@ pipeline {
                     npm --version
                     cd wordladder_frontend
                     ls -la
-                    yarn build
+                    npm run build
                 '''
             }
         }
