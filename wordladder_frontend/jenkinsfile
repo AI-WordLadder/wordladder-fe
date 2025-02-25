@@ -7,20 +7,12 @@ pipeline {
     }
 
     stages {
-        stage('Install') {
-            steps {
-                sh '''
-                    yum install nodejs npm
-                    node --version
-                    npm --version
-                '''
-            }
-        }
-
         stage('Build') {
             steps {
                 sh '''
                     ls -la
+                    node --version
+                    npm --version
                     npm run build
                     ls -la
                 '''
