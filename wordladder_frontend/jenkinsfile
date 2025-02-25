@@ -15,6 +15,7 @@ pipeline {
                     npm --version
                     cd wordladder_frontend
                     ls -la
+                    npm ci
                     chmod +x node_modules/.bin/react-scripts
                     npm run build
                 '''
