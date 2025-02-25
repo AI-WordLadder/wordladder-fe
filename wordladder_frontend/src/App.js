@@ -69,7 +69,12 @@ class Header extends Component {
 
     // Use for loop to push textarea elements
     for (let i = 0; i < this.state.wordlength; i++) {
-      textareas.push(<textarea className="inputBox" readOnly></textarea>);
+      if (i === 0){
+        textareas.push(<textarea className="block currentBlock"readOnly></textarea>);
+      }
+      else{
+        textareas.push(<textarea className="block"readOnly></textarea>);
+      }
     }
 
 
@@ -103,6 +108,7 @@ class Header extends Component {
               <textarea class="" value={this.state.text} readOnly></textarea>
               <textarea class="" value={this.state.text} readOnly></textarea> */}
           </div>
+          <div className="textarea input"> {textareas}</div>
           <div className="textarea endword">
             {this.state.endword.split('').map((char) => (
                 <textarea
@@ -179,37 +185,38 @@ export default App;
 
 // -----------------------------------------------------------------------------------------------------------------------
 
+// import { useState } from "react";
 
-// import React, { Component, createRef } from "react";
+// function TextAreaList() {
+//   const [currentIndex, setCurrentIndex] = useState(0);
+//   const [textareas, setTextareas] = useState(["", "", "", "", ""]); // มี 5 Textareas
 
-// class TextAreaComponent extends Component {
-//   constructor(props) {
-//     super(props);
-//     this.state = { text: "", word : "e" };
-//     this.textAreaRef = createRef(); // สร้าง ref
-//   }
-
-//   checkClassName = () => {
-//     if (this.textAreaRef.current) {
-//       console.log(this.textAreaRef.current.classList.contains("filled")); // true หรือ false
+//   const handleNext = () => {
+//     if (currentIndex < textareas.length - 1) {
+//       setCurrentIndex(currentIndex + 1);
 //     }
 //   };
 
-//   render() {
-//     return (
-//       <div>
+//   const handleChange = (index, newValue) => {
+//     const updatedTextareas = [...textareas]; // Copy array
+//     updatedTextareas[index] = newValue; // อัปเดตค่าเฉพาะอันที่ต้องการ
+//     setTextareas(updatedTextareas);
+//   };
+
+//   return (
+//     <div>
+//       {textareas.map((text, i) => (
 //         <textarea
-//           ref={this.textAreaRef}
-//           className={this.state.text ? "filled" : "current"}
-//           // value={ this.state.text}
-//           value={ this.state.text}
-//           onChange={(e) => this.setState({ text: e.target.value })}
-//           placeholder="Type something..."
-//         ></textarea>
-//         {/* <button onClick={this.checkClassName}>Check Class</button> */}
-//       </div>
-//     );
-//   }
+//           key={i}
+//           className={i === currentIndex ? "Current" : i < currentIndex ? "Filled" : ""}
+//           value={text} // ผูกค่ากับ state
+//           onChange={(e) => handleChange(i, e.target.value)} // อัปเดตค่าเฉพาะอันที่แก้ไข
+//           readOnly={i !== currentIndex} // อนุญาตให้พิมพ์ได้เฉพาะอันที่เป็น "Current"
+//         />
+//       ))}
+//       <button onClick={handleNext}>Next</button>
+//     </div>
+//   );
 // }
 
-// export default TextAreaComponent;
+// export default TextAreaList;
