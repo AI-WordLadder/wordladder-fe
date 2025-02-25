@@ -10,7 +10,7 @@ pipeline {
         stage('Install') {
             steps {
                 sh '''
-                    sudo yum install nodejs npm
+                    yum install nodejs npm
                     node --version
                     npm --version
                 '''
