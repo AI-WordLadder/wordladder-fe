@@ -1,0 +1,7 @@
+wordladder_frontend/node_modules
+wordladder_frontend/npm-debug.log
+wordladder_frontend/Dockerfile
+wordladder_frontend/.dockerignore
+wordladder_frontend/.git
+wordladder_frontend/.gitignore
+wordladder_frontend/.env

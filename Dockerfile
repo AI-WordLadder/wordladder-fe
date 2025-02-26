@@ -2,11 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY wordladder_frontend/package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY wordladder_frontend/. .
 
 EXPOSE 3000
 
