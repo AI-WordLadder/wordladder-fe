@@ -1,36 +1,17 @@
 pipeline {
     agent any
 
-    environment {
-        NETLIFY_SITE_ID = '8599b32b-e88a-41e1-8586-6c366a135701'
-        NETLIFY_AUTH_TOKEN = credentials('netlify-token')
-    }
-
     stages {
-        stage('Build') {
+        stage('Create Image') {
             steps {
-                sh '''
-                    ls -la
-                    node --version
-                    npm --version
-                    cd wordladder_frontend
-                    ls -la
-                    npm install
-                    chmod +x node_modules/.bin/react-scripts
-                    npm run build
-                '''
+                sh "ls -la"
+                sh "docker build -t frontend_image ."
             }
         }
 
-        stage('Deploy') {
+        stage('Run Image') {
             steps {
-                sh '''
-                    npm install netlify-cli 
-                    node_modules/.bin/netlify --version
-                    echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --prod
-                '''
+                sh "docker run -d --name wordladder_fe -p 3000:3000 frontend_image"
             }
         }
     }
