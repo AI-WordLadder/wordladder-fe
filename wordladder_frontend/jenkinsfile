@@ -5,6 +5,7 @@ pipeline {
         stage('Create Image') {
             steps {
                 sh "ls -la"
+                sh "cd wordladder_frontend"
                 sh "docker build -t frontend_image ."
             }
         }
