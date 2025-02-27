@@ -2,7 +2,7 @@ import './App.css';
 import axios from 'axios'
 import { Component , createRef,useState,useEffect } from 'react';
 
-let row = [];
+// let row = [];
 class Header extends Component {
   constructor(props) {
     super(props);
@@ -72,6 +72,7 @@ class Header extends Component {
     // this.fetchData();
     const  {heuristic } = this.props; // ✅ รับ props มาใช้ใน render
     let textareas = []; // Create an empty array
+    let row = '';
     // Use for loop to push textarea elements
     for (let i = 0; i < heuristic.startword.length; i++) {
       if (i === 0){
@@ -81,7 +82,7 @@ class Header extends Component {
         textareas.push(<textarea className="block"readOnly></textarea>);
       }
     }
-    row.push(<div class="row">{textareas}</div>)
+    row = <div class="row">{textareas}</div>
 
 
     return (
@@ -98,7 +99,7 @@ class Header extends Component {
               </textarea>
             ))}      
           </div>
-          <div className="textarea input">{row[0]}
+          <div className="textarea input">{row}{row}
             {/* version 1 */}
             {/* {this.state.text.split('').map((char) => (
                 <textarea
