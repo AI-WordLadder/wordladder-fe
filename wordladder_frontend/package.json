@@ -1,7 +1,6 @@
 {
   "name": "wordladder_frontend",
-  "proxy": "http://3.107.195.112:8000",
-  "version": "0.1.0",
+  "proxy": "http://13.211.162.31:8000",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
