@@ -1,29 +1,22 @@
 import './App.css';
-import { Component , createRef } from 'react';
+import axios from 'axios'
+import { Component , createRef,useState,useEffect } from 'react';
 
-const heuristic = {
-  technique: "A* Search",
-  startword: "NEED",
-  endword: "WHEN",
-  optimal: 12,
-  path: ["reseal", "reseat", "resent", "resend", "reseed", "rested", "tested", "tasted", "tauted", "dauted", "daubed", "dabbed", "dubbed"],
-  space: "0.45 KB",
-  time: "0.1160 sec"
-}
-
-
+let row = [];
 class Header extends Component {
   constructor(props) {
     super(props);
     this.state = {
       text: '', // Store textarea content
-      startword: heuristic.startword,
-      endword: heuristic.endword,
-      wordlength : heuristic.startword.length
+      startword: props.heuristic.startword, // ต้องใช้ props.heuristic
+      endword: props.heuristic.endword,
+      wordlength: props.heuristic.startword.length,
+      
     };
     this.textAreaRef = createRef(); // สร้าง ref
-
   }
+  
+  //variable
 
   componentDidMount() {
     document.addEventListener('keydown', this.handleKeyPress);
@@ -43,6 +36,17 @@ class Header extends Component {
       this.setState((prevState) => ({
         text: prevState.text + '\n', // Add a new line
       }));
+    //   let textareas = []; // Create an empty array
+    //   // Use for loop to push textarea elements
+    //   for (let i = 0; i < this.state.startword.length; i++) {
+    //     if (i === 0){
+    //       textareas.push(<textarea className="block currentBlock"readOnly></textarea>);
+    //     }
+    //     else{
+    //       textareas.push(<textarea className="block"readOnly></textarea>);
+    //     }
+    //   }
+    //   row.push(<div class="row">{textareas}</div>)
     }
     else if (/[a-zA-Z]/.test(key)) {
       // Allow only letters (A-Z, a-z)
@@ -65,10 +69,11 @@ class Header extends Component {
   };
 
   render() {
+    // this.fetchData();
+    const  {heuristic } = this.props; // ✅ รับ props มาใช้ใน render
     let textareas = []; // Create an empty array
-
     // Use for loop to push textarea elements
-    for (let i = 0; i < this.state.wordlength; i++) {
+    for (let i = 0; i < heuristic.startword.length; i++) {
       if (i === 0){
         textareas.push(<textarea className="block currentBlock"readOnly></textarea>);
       }
@@ -76,13 +81,14 @@ class Header extends Component {
         textareas.push(<textarea className="block"readOnly></textarea>);
       }
     }
+    row.push(<div class="row">{textareas}</div>)
 
 
     return (
       <div className="container">
         <div class="gameplay">
           <div className="textarea startword">      
-            {this.state.startword.split('').map((char) => (
+            {heuristic.startword.split('').map((char) => (
               <textarea
                 value={char}
                 className=""
@@ -92,7 +98,7 @@ class Header extends Component {
               </textarea>
             ))}      
           </div>
-          <div className="textarea input"> {textareas}
+          <div className="textarea input">{row[0]}
             {/* version 1 */}
             {/* {this.state.text.split('').map((char) => (
                 <textarea
@@ -108,9 +114,9 @@ class Header extends Component {
               <textarea class="" value={this.state.text} readOnly></textarea>
               <textarea class="" value={this.state.text} readOnly></textarea> */}
           </div>
-          <div className="textarea input"> {textareas}</div>
+          {/* <div className="textarea input"> {row}</div> */}
           <div className="textarea endword">
-            {this.state.endword.split('').map((char) => (
+            {heuristic.endword.split('').map((char) => (
                 <textarea
                   value={char}
                   className=""
@@ -173,9 +179,24 @@ class Header extends Component {
 }
 
 function App() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/game?length=3&blind=bfs&heuristoc=astar");
+        setData(response.data);
+        console.log("Fetched Data:", response.data); // 🔹 Print ข้อมูลที่ได้จาก API
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, []); // รันแค่ครั้งเดียวตอน component โหลด
+
   return (
     <div>
-      <Header/>
+      {data && <Header heuristic={data.heuristic} />}
     </div>
   );
 }
