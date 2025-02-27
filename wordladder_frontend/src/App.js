@@ -1,6 +1,8 @@
 import './App.css';
 import axios from 'axios'
-import { Component, createRef, useState, useEffect } from 'react';
+import { Component, useState, useEffect, createRef} from 'react';
+
+// ------------------- work version ------------------------------------
 
 class Header extends Component {
   constructor(props) {
@@ -33,58 +35,106 @@ class Header extends Component {
   handleKeyPress = (event) => {
     const { key } = event;
 
-    if (key === 'Backspace') {
-      this.handleDelete();
-    } else if (key === 'Enter') {
-      event.preventDefault(); // Prevent new line in input
-      this.setState((prevState) => ({
-        rows: [...prevState.rows, []], // Append a new row
-      }));
-    } else if (/[a-zA-Z]/.test(key)) {
+    if (/[a-zA-Z]/.test(key) && key.length === 1) {
+      event.preventDefault();
       this.setState((prevState) => {
         const newRows = [...prevState.rows];
-        const lastRow = newRows[newRows.length - 1];
-
+        const lastRowIndex = newRows.length - 1;
+        const lastRow = [...newRows[lastRowIndex]]; // Copy last row to avoid mutation
+  
         if (lastRow.length < prevState.wordlength) {
-          lastRow.push(key.toUpperCase());
+          lastRow.push(key.toUpperCase()); // Add character only once
+          newRows[lastRowIndex] = lastRow; // Update the last row
         }
-
+  
         return { rows: newRows };
       });
+    } else if (key === "Backspace") {
+      this.handleDelete();
+    } else if (key === "Enter") {
+      event.preventDefault();
+      this.handleEnter(event);
     }
   };
-
+  
   handleButtonClick = (char) => {
+    // event.preventDefault();
     this.setState((prevState) => {
       const newRows = [...prevState.rows];
-      const lastRow = newRows[newRows.length - 1];
+      const lastRowIndex = newRows.length - 1;
+      const lastRow = [...newRows[lastRowIndex]]; // Copy last row to avoid mutation
 
       if (lastRow.length < prevState.wordlength) {
-        lastRow.push(char);
+        lastRow.push(char.toUpperCase()); // Add character only once
+        newRows[lastRowIndex] = lastRow; // Update the last row
       }
 
       return { rows: newRows };
     });
   };
+  
+//++++++++++++++++++++++++ work ++++++++++++++++++++++++++++++++++++++
+  // handleKeyPress = (event) => {
+  //   const { key } = event;
+
+  //   if (key === 'Backspace') {
+  //     this.handleDelete();
+  //   } else if (key === 'Enter') {
+  //     event.preventDefault(); // Prevent new line in input
+  //     this.setState((prevState) => ({
+  //       rows: [...prevState.rows, []], // Append a new row
+  //     }));
+  //   } else if (/[a-zA-Z]/.test(key)) {
+  //     event.preventDefault();
+  //     this.setState((prevState) => {
+  //       const newRows = [...prevState.rows];
+  //       const lastRow = newRows[newRows.length - 1];
+
+  //       if (lastRow.length < prevState.wordlength) {
+  //         lastRow.push(key.toUpperCase());
+  //       }
+
+  //       return { rows: newRows };
+  //     });
+  //   }
+  // };
+
+  // handleButtonClick = (char) => {
+  //   this.setState((prevState) => {
+  //     const newRows = [...prevState.rows];
+  //     const lastRow = newRows[newRows.length - 1];
+
+  //     if (lastRow.length < prevState.wordlength) {
+  //       lastRow.push(char);
+  //     }
+
+  //     return { rows: newRows };
+  //   });
+  // };
+  //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   handleDelete = () => {
     this.setState((prevState) => {
       const newRows = [...prevState.rows];
-      const lastRow = newRows[newRows.length - 1];
-
+      const lastRowIndex = newRows.length - 1;
+      const lastRow = [...newRows[lastRowIndex]]; // Copy to avoid mutation
+  
       if (lastRow.length > 0) {
-        lastRow.pop();
+        lastRow.pop(); // Remove only the last character
+        newRows[lastRowIndex] = lastRow; // Update last row
       } else if (newRows.length > 1) {
-        newRows.pop();
+        newRows.pop(); // Remove empty row if there’s more than one
       }
-
+  
       return { rows: newRows };
     });
   };
+  
 
   render() {
     const { heuristic } = this.props;
     const { rows } = this.state;
+    console.log(this.state.rows)
 
     return (
       <div className="container">
@@ -161,6 +211,9 @@ class Header extends Component {
   }
 }
 
+
+
+//---------------------------------------------------------------------------
 
 
 // let row = [];
