@@ -1,22 +1,19 @@
 import './App.css';
 import axios from 'axios'
-import { Component , createRef,useState,useEffect } from 'react';
+import { Component, createRef, useState, useEffect } from 'react';
 
-// let row = [];
 class Header extends Component {
   constructor(props) {
     super(props);
     this.state = {
       text: '', // Store textarea content
-      startword: props.heuristic.startword, // ต้องใช้ props.heuristic
+      startword: props.heuristic.startword, // Props for heuristic
       endword: props.heuristic.endword,
       wordlength: props.heuristic.startword.length,
-      
+      rows: [[]], // Store multiple rows of textareas
     };
-    this.textAreaRef = createRef(); // สร้าง ref
+    this.textAreaRef = createRef();
   }
-  
-  //variable
 
   componentDidMount() {
     document.addEventListener('keydown', this.handleKeyPress);
@@ -26,116 +23,108 @@ class Header extends Component {
     document.removeEventListener('keydown', this.handleKeyPress);
   }
 
+  handleEnter = (event) => {
+    event.preventDefault(); // Ensure it's a real event
+    this.setState((prevState) => ({
+      rows: [...prevState.rows, []], // Append a new row
+    }));
+  };
+
   handleKeyPress = (event) => {
     const { key } = event;
-    
+
     if (key === 'Backspace') {
-      this.handleDelete(); // Delete character when pressing Backspace
-    }
-    else if (key === 'Enter') {
+      this.handleDelete();
+    } else if (key === 'Enter') {
+      event.preventDefault(); // Prevent new line in input
       this.setState((prevState) => ({
-        text: prevState.text + '\n', // Add a new line
+        rows: [...prevState.rows, []], // Append a new row
       }));
-    //   let textareas = []; // Create an empty array
-    //   // Use for loop to push textarea elements
-    //   for (let i = 0; i < this.state.startword.length; i++) {
-    //     if (i === 0){
-    //       textareas.push(<textarea className="block currentBlock"readOnly></textarea>);
-    //     }
-    //     else{
-    //       textareas.push(<textarea className="block"readOnly></textarea>);
-    //     }
-    //   }
-    //   row.push(<div class="row">{textareas}</div>)
-    }
-    else if (/[a-zA-Z]/.test(key)) {
-      // Allow only letters (A-Z, a-z)
-      this.setState((prevState) => ({
-        text: prevState.text + key.toUpperCase(), // Convert to uppercase
-      }));
+    } else if (/[a-zA-Z]/.test(key)) {
+      this.setState((prevState) => {
+        const newRows = [...prevState.rows];
+        const lastRow = newRows[newRows.length - 1];
+
+        if (lastRow.length < prevState.wordlength) {
+          lastRow.push(key.toUpperCase());
+        }
+
+        return { rows: newRows };
+      });
     }
   };
 
   handleButtonClick = (char) => {
-    this.setState((prevState) => ({
-      text: prevState.text + char,
-    }));
+    this.setState((prevState) => {
+      const newRows = [...prevState.rows];
+      const lastRow = newRows[newRows.length - 1];
+
+      if (lastRow.length < prevState.wordlength) {
+        lastRow.push(char);
+      }
+
+      return { rows: newRows };
+    });
   };
 
   handleDelete = () => {
-    this.setState((prevState) => ({
-      text: prevState.text.slice(0, -1), // Remove the last character
-    }));
+    this.setState((prevState) => {
+      const newRows = [...prevState.rows];
+      const lastRow = newRows[newRows.length - 1];
+
+      if (lastRow.length > 0) {
+        lastRow.pop();
+      } else if (newRows.length > 1) {
+        newRows.pop();
+      }
+
+      return { rows: newRows };
+    });
   };
 
   render() {
-    // this.fetchData();
-    const  {heuristic } = this.props; // ✅ รับ props มาใช้ใน render
-    let textareas = []; // Create an empty array
-    let row = '';
-    // Use for loop to push textarea elements
-    for (let i = 0; i < heuristic.startword.length; i++) {
-      if (i === 0){
-        textareas.push(<textarea className="block currentBlock"readOnly></textarea>);
-      }
-      else{
-        textareas.push(<textarea className="block"readOnly></textarea>);
-      }
-    }
-    row = <div class="row">{textareas}</div>
-
+    const { heuristic } = this.props;
+    const { rows } = this.state;
 
     return (
       <div className="container">
-        <div class="gameplay">
-          <div className="textarea startword">      
-            {heuristic.startword.split('').map((char) => (
-              <textarea
-                value={char}
-                className=""
-                readOnly
-              >
-                {char}
-              </textarea>
-            ))}      
+        <div className="gameplay">
+          {/* Start Word */}
+          <div className="textarea startword">
+            {heuristic.startword.split('').map((char, index) => (
+              <textarea key={index} value={char} readOnly />
+            ))}
           </div>
-          <div className="textarea input">{row}{row}
-            {/* version 1 */}
-            {/* {this.state.text.split('').map((char) => (
-                <textarea
-                  value={char}
-                  className=""
-                  readOnly
-                >
-                  {char}
-                </textarea>
-              ))}   */}
-              {/* version 2 */}             
-              {/* <textarea ref={this.textAreaRef} className={this.state.text ? "textarea input filled" : "textarea input current"} value={this.state.text} readOnly></textarea>
-              <textarea class="" value={this.state.text} readOnly></textarea>
-              <textarea class="" value={this.state.text} readOnly></textarea> */}
+
+          {/* Dynamic Rows */}
+          <div className="textarea input">
+            {rows.map((row, rowIndex) => (
+              <div key={rowIndex} className="row">
+                {heuristic.startword.split('').map((_, charIndex) => (
+                  <textarea
+                    key={charIndex}
+                    className={charIndex === 0 && rowIndex === 0 ? "block currentBlock" : "block"}
+                    value={row[charIndex] || ""}
+                    readOnly
+                  />
+                ))}
+              </div>
+            ))}
           </div>
-          {/* <div className="textarea input"> {row}</div> */}
+
+          {/* End Word */}
           <div className="textarea endword">
-            {heuristic.endword.split('').map((char) => (
-                <textarea
-                  value={char}
-                  className=""
-                  readOnly
-                >
-                  {char}
-                </textarea>
-              ))}            
+            {heuristic.endword.split('').map((char, index) => (
+              <textarea key={index} value={char} readOnly />
+            ))}
           </div>
         </div>
+
+        {/* Keyboard */}
         <div className="keyboard">
           <div className="keyboardRow">
             {'QWERTYUIOP'.split('').map((char) => (
-              <button
-                key={char}
-                className="button characterButton"
-                onClick={() => this.handleButtonClick(char)}
-              >
+              <button key={char} className="button characterButton" onClick={() => this.handleButtonClick(char)}>
                 {char}
               </button>
             ))}
@@ -143,34 +132,27 @@ class Header extends Component {
           <div className="keyboardRow">
             <div className="keyboardSpacer"></div>
             {'ASDFGHJKL'.split('').map((char) => (
-              <button
-                key={char}
-                className="button characterButton"
-                onClick={() => this.handleButtonClick(char)}
-              >
+              <button key={char} className="button characterButton" onClick={() => this.handleButtonClick(char)}>
                 {char}
               </button>
             ))}
             <div className="keyboardSpacer"></div>
           </div>
           <div className="keyboardRow">
-            <button className="button enterButton" onClick={() => this.handleButtonClick('\n')}>
+            {/* <button className="button enterButton" onClick={() => this.handleKeyPress({ key: 'Enter' })}>
+              Enter
+            </button> */}
+            <button className="button enterButton" onClick={this.handleEnter}>
               Enter
             </button>
+
             {'ZXCVBNM'.split('').map((char) => (
-              <button
-                key={char}
-                className="button characterButton"
-                onClick={() => this.handleButtonClick(char)}
-              >
+              <button key={char} className="button characterButton" onClick={() => this.handleButtonClick(char)}>
                 {char}
               </button>
             ))}
             <button className="button deleteButton" onClick={this.handleDelete}>
-              <img
-                src="https://static-00.iconduck.com/assets.00/backspace-icon-2048x1509-3pqr8k29.png"
-                alt="-"
-              />
+              <img src="https://static-00.iconduck.com/assets.00/backspace-icon-2048x1509-3pqr8k29.png" alt="-" />
             </button>
           </div>
         </div>
@@ -178,6 +160,160 @@ class Header extends Component {
     );
   }
 }
+
+
+
+// let row = [];
+// class Header extends Component {
+//   constructor(props) {
+//     super(props);
+//     this.state = {
+//       text: '', // Store textarea content
+//       startword: props.heuristic.startword, // ต้องใช้ props.heuristic
+//       endword: props.heuristic.endword,
+//       wordlength: props.heuristic.startword.length,
+
+//     };
+//     this.textAreaRef = createRef(); // สร้าง ref
+//   }
+
+//   //variable
+
+//   componentDidMount() {
+//     document.addEventListener('keydown', this.handleKeyPress);
+//   }
+
+//   componentWillUnmount() {
+//     document.removeEventListener('keydown', this.handleKeyPress);
+//   }
+
+//   handleKeyPress = (event) => {
+//     const { key } = event;
+
+//     if (key === 'Backspace') {
+//       this.handleDelete(); // Delete character when pressing Backspace
+//     }
+//     else if (key === 'Enter') {
+//       this.setState((prevState) => ({
+//         text: prevState.text + '\n', // Add a new line
+//       }));
+//     }
+//     else if (/[a-zA-Z]/.test(key)) {
+//       // Allow only letters (A-Z, a-z)
+//       this.setState((prevState) => ({
+//         text: prevState.text + key.toUpperCase(), // Convert to uppercase
+//       }));
+//     }
+//   };
+
+//   handleButtonClick = (char) => {
+//     this.setState((prevState) => ({
+//       text: prevState.text + char,
+//     }));
+//   };
+
+//   handleDelete = () => {
+//     this.setState((prevState) => ({
+//       text: prevState.text.slice(0, -1), // Remove the last character
+//     }));
+//   };
+
+//   render() {
+//     // this.fetchData();
+//     const  {heuristic } = this.props; // ✅ รับ props มาใช้ใน render
+//     let textareas = []; // Create an empty array
+//     let row = '';
+//     // Use for loop to push textarea elements
+//     for (let i = 0; i < heuristic.startword.length; i++) {
+//       if (i === 0){
+//         textareas.push(<textarea className="block currentBlock"readOnly></textarea>);
+//       }
+//       else{
+//         textareas.push(<textarea className="block"readOnly></textarea>);
+//       }
+//     }
+//     row = <div class="row">{textareas}</div>
+
+
+//     return (
+//       <div className="container">
+//         <div class="gameplay">
+//           <div className="textarea startword">      
+//             {heuristic.startword.split('').map((char) => (
+//               <textarea
+//                 value={char}
+//                 className=""
+//                 readOnly
+//               >
+//                 {char}
+//               </textarea>
+//             ))}      
+//           </div>
+//           <div className="textarea input">{row}{row}
+//           </div>
+//           {/* <div className="textarea input"> {row}</div> */}
+//           <div className="textarea endword">
+//             {heuristic.endword.split('').map((char) => (
+//                 <textarea
+//                   value={char}
+//                   className=""
+//                   readOnly
+//                 >
+//                   {char}
+//                 </textarea>
+//               ))}            
+//           </div>
+//         </div>
+//         <div className="keyboard">
+//           <div className="keyboardRow">
+//             {'QWERTYUIOP'.split('').map((char) => (
+//               <button
+//                 key={char}
+//                 className="button characterButton"
+//                 onClick={() => this.handleButtonClick(char)}
+//               >
+//                 {char}
+//               </button>
+//             ))}
+//           </div>
+//           <div className="keyboardRow">
+//             <div className="keyboardSpacer"></div>
+//             {'ASDFGHJKL'.split('').map((char) => (
+//               <button
+//                 key={char}
+//                 className="button characterButton"
+//                 onClick={() => this.handleButtonClick(char)}
+//               >
+//                 {char}
+//               </button>
+//             ))}
+//             <div className="keyboardSpacer"></div>
+//           </div>
+//           <div className="keyboardRow">
+//             <button className="button enterButton" onClick={() => this.handleButtonClick('\n')}>
+//               Enter
+//             </button>
+//             {'ZXCVBNM'.split('').map((char) => (
+//               <button
+//                 key={char}
+//                 className="button characterButton"
+//                 onClick={() => this.handleButtonClick(char)}
+//               >
+//                 {char}
+//               </button>
+//             ))}
+//             <button className="button deleteButton" onClick={this.handleDelete}>
+//               <img
+//                 src="https://static-00.iconduck.com/assets.00/backspace-icon-2048x1509-3pqr8k29.png"
+//                 alt="-"
+//               />
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   }
+// }
 
 function App() {
   const [data, setData] = useState(null);
@@ -242,3 +378,4 @@ export default App;
 // }
 
 // export default TextAreaList;
+
