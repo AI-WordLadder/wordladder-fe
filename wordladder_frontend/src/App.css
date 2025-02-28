@@ -24,8 +24,21 @@ body{
   margin-right: auto;
 }
 
+.clearBoardButton{
+  color: black;
+  width: 100%;
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+  border-radius: 0%;
+
+}
+
+.clearBoardButton:hover {
+  background-color: #f34f43; /* Red background for delete button */
+  color: white;
+}
+
 button{
-  background-color: #d3d3d3;
+  /* background-color: #d3d3d3; */
   border: none;
   border-radius: 15%;
   padding: .5rem 1rem;
@@ -55,9 +68,9 @@ button{
 .row{
   display: flex;
   justify-content: center;
-
   
 }
+
 
 .textarea.startword{
   justify-content: center;

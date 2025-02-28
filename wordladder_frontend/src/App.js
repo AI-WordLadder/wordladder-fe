@@ -1,6 +1,6 @@
 import './App.css';
 import axios from 'axios'
-import { Component, useState, useEffect, createRef} from 'react';
+import { Component, useState, useEffect} from 'react';
 
 // ------------------- work version ------------------------------------
 
@@ -14,8 +14,10 @@ class Header extends Component {
       endword: props.heuristic.endword,
       wordlength: props.heuristic.startword.length,
       rows: [[]], // Store multiple rows of textareas
+      filledRows: [] // เก็บ rowIndex ที่ต้องเปลี่ยนเป็น "filled"
+
     };
-    this.textAreaRef = createRef();
+    // this.textAreaRef = createRef();
   }
 
   componentDidMount() {
@@ -36,6 +38,10 @@ class Header extends Component {
     if (this.scrollRef) {
       this.scrollRef.scrollTop = this.scrollRef.scrollHeight; // เลื่อนลงสุด
     }
+  }
+
+  ResetState=() =>{
+    this.setState({rows: [[]]});  
   }
 
   checkPrev = (row,rowLength) => {
@@ -61,7 +67,8 @@ class Header extends Component {
       console.log("---- Handle Enter ----")
       if (lastRow.length === this.state.startword.length) { // เช็คว่าแถวล่าสุดมีความยาวเท่ากับ startword หรือยัง
         this.fetchData(word,prevWord)
-        return { rows: [...newRows, []] }; // เพิ่มแถวใหม่
+        return { rows: [...newRows, []] ,filledRows: [...prevState.filledRows, newRows.length - 1] // เก็บ row ก่อนหน้า
+        }; // เพิ่มแถวใหม่
       }
       return null; // ไม่เปลี่ยน state ถ้ายังไม่ครบ 3 ตัวอักษร
     });
@@ -131,9 +138,17 @@ class Header extends Component {
         lastRow.pop(); // Remove only the last character
         newRows[lastRowIndex] = lastRow; // Update last row
       } else if (newRows.length > 1) {
-        newRows.pop(); // Remove empty row if there’s more than one
+        newRows.pop(); // ลบแถวถ้ามีมากกว่า 1 แถว
+  
+        // 🔹 ถ้าแถวที่ถูกลบคือแถวที่เคยเปลี่ยน className ให้รีเซ็ตค่า
+        const updatedFilledRows = prevState.filledRows.filter((row) => row !== lastRowIndex - 1);
+  
+        return {
+          rows: newRows,
+          filledRows: updatedFilledRows
+        };
       }
-      
+  
       return { rows: newRows };
     });
   };
@@ -158,13 +173,15 @@ class Header extends Component {
           <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
             {rows.map((row, rowIndex) => (
               <div key={rowIndex} className="row">
-                {heuristic.startword.split('').map((_, charIndex) => (
-                  <textarea
-                    key={charIndex}
-                    className={charIndex === 0 && rowIndex === 0 ? "block currentBlock" : "block"}
-                    value={row[charIndex] || ""}
-                    readOnly
-                  />
+                {
+                  heuristic.startword.split('').map((_, charIndex) => (
+                    <textarea
+                      key={charIndex}
+                      // className={charIndex === 0 && rowIndex === 0 ? `block` : `block ${charIndex === 2 ? "transitionBlock" : ""}`}
+                      className={`block ${charIndex === 0 && rowIndex === 0 ? "currentBlock" : ""} ${this.state.filledRows.includes(rowIndex) && charIndex === (rowIndex === 1 ? 1 : 2) ? "transitionBlock" : ""}`}
+                      value={row[charIndex] || ""}
+                      readOnly
+                    />
                 ))}
               </div>
             ))}
@@ -176,6 +193,12 @@ class Header extends Component {
             ))}
           </div>
         </div>
+
+        {/* Pop-up Error */}
+
+        
+        {/* Reset Bttn */}
+        <button class="clearBoardButton" onClick={this.ResetState}>Reset</button>
 
         {/* Keyboard */}
         <div className="keyboard">
