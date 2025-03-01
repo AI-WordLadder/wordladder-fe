@@ -96,7 +96,6 @@ button{
   flex-direction: column;
   gap: 8px; /* ระยะห่างระหว่างแต่ละ row */
   position: relative;
-
 }
 
 textarea{

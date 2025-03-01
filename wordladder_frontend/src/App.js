@@ -16,6 +16,7 @@ class Header extends Component {
       rows: [[]], // Store multiple rows of textareas
       filledRows: [], // เก็บ rowIndex ที่ต้องเปลี่ยนเป็น "filled"
       changedRows : [],
+      confirmedRows: [],
 
     };
     // this.textAreaRef = createRef();
@@ -54,23 +55,45 @@ class Header extends Component {
     }
   }
 
+  // handleEnter = (event) => {
+  //   this.setState((prevState) => {
+  //     const newRows = [...prevState.rows];
+  //     const lastRow = newRows[newRows.length - 1];
+  //     const word = lastRow.join('').toLowerCase();
+  //     const prevWord = this.checkPrev(newRows, newRows.length);
+      
+  //     if (lastRow.length === this.state.startword.length) {
+  //       this.fetchData(word, prevWord);
+  //       return { 
+  //         rows: [...newRows, []], 
+  //         filledRows: [...prevState.filledRows, newRows.length - 1] 
+  //       };
+  //     }
+  //     return null;
+  //   });
+  // };
+
   handleEnter = (event) => {
     this.setState((prevState) => {
-      const newRows = [...prevState.rows];
-      const lastRow = newRows[newRows.length - 1];
+      const newRows = [...prevState.rows]; 
+      const lastRowIndex = newRows.length - 1;
+      const lastRow = newRows[lastRowIndex]; 
       const word = lastRow.join('').toLowerCase();
       const prevWord = this.checkPrev(newRows, newRows.length);
-      
-      if (lastRow.length === this.state.startword.length) {
+  
+      if (lastRow.length === this.state.startword.length) { 
         this.fetchData(word, prevWord);
+  
         return { 
           rows: [...newRows, []], 
-          filledRows: [...prevState.filledRows, newRows.length - 1] 
+          filledRows: [...prevState.filledRows, lastRowIndex], 
+          confirmedRows: [...prevState.confirmedRows, lastRowIndex] // ✅ เพิ่ม rowIndex ที่ถูกตรวจสอบแล้ว
         };
       }
       return null;
     });
   };
+  
 
 
 fetchData = async (word, prevWord) => {
@@ -201,7 +224,7 @@ fetchData = async (word, prevWord) => {
               <div key={rowIndex} className="row">
                 {
                   heuristic.startword.split('').map((_, charIndex) => {
-                    console.log(`Row: ${rowIndex}, CharIndex: ${charIndex}`); // 🔹 ดูค่าของ charIndex และ rowIndex
+                    console.log(`Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`); // 🔹 ดูค่าของ charIndex และ rowIndex
                     return(
                     <textarea
                       key={charIndex}
@@ -209,7 +232,11 @@ fetchData = async (word, prevWord) => {
                       // className={charIndex === 0 && rowIndex === 0 ? `block` : `block ${charIndex === 2 ? "transitionBlock" : ""}`}
                       // className={`block ${charIndex === 0 && rowIndex === 0 ? "currentBlock" : ""} ${rowIndex === this.state.filledRows.length - 1 && charIndex === this.state.data?.change ? "transitionBlock" : ""}`}
                       // className={`block ${this.state.changedRows.some(row => row.rowIndex === rowIndex && row.charIndex === charIndex) ? "transitionBlock" : ""}`}
-                      className={`block ${this.state.changedRows.some(row => row.rowIndex === rowIndex && row.charIndex === charIndex) ? "transitionBlock" : ""}` }
+                      // className={`block ${this.state.changedRows.some(row => row.rowIndex === rowIndex && row.charIndex === charIndex) ? "transitionBlock" : ""}`}
+                      className={`block 
+                        ${(this.state.endword[charIndex].toUpperCase() === row[charIndex]) ? "correctBlock" : ""} 
+                        ${this.state.changedRows.some(row => row.rowIndex === rowIndex && row.charIndex === charIndex) ? "transitionBlock" : ""}
+                      `}
                       value={row[charIndex] || ""}
                       readOnly
                     />
