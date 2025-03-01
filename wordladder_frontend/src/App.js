@@ -14,7 +14,8 @@ class Header extends Component {
       endword: props.heuristic.endword,
       wordlength: props.heuristic.startword.length,
       rows: [[]], // Store multiple rows of textareas
-      filledRows: [] // เก็บ rowIndex ที่ต้องเปลี่ยนเป็น "filled"
+      filledRows: [], // เก็บ rowIndex ที่ต้องเปลี่ยนเป็น "filled"
+      changedRows : [],
 
     };
     // this.textAreaRef = createRef();
@@ -54,38 +55,46 @@ class Header extends Component {
   }
 
   handleEnter = (event) => {
-    // event.preventDefault(); // ป้องกันการขึ้นบรรทัดใหม่ใน input
-  
     this.setState((prevState) => {
-      const newRows = [...prevState.rows]; // คัดลอก rows ออกมา
-      const lastRow = newRows[newRows.length - 1]; // แถวล่าสุด
+      const newRows = [...prevState.rows];
+      const lastRow = newRows[newRows.length - 1];
       const word = lastRow.join('').toLowerCase();
-      const prevWord = this.checkPrev(newRows,newRows.length)
-      console.log("---- Handle Enter ----")
-      console.log(word)
-      console.log(prevWord)
-      console.log("---- Handle Enter ----")
-      if (lastRow.length === this.state.startword.length) { // เช็คว่าแถวล่าสุดมีความยาวเท่ากับ startword หรือยัง
-        this.fetchData(word,prevWord)
-        return { rows: [...newRows, []] ,filledRows: [...prevState.filledRows, newRows.length - 1] // เก็บ row ก่อนหน้า
-        }; // เพิ่มแถวใหม่
+      const prevWord = this.checkPrev(newRows, newRows.length);
+      
+      if (lastRow.length === this.state.startword.length) {
+        this.fetchData(word, prevWord);
+        return { 
+          rows: [...newRows, []], 
+          filledRows: [...prevState.filledRows, newRows.length - 1] 
+        };
       }
-      return null; // ไม่เปลี่ยน state ถ้ายังไม่ครบ 3 ตัวอักษร
+      return null;
     });
-
   };
 
-  fetchData = async (word,prevWord) => {
-    const url = `/check?word=${word}&previous=${prevWord}`;
-        try {
-      const response = await axios.get(url);
-      this.setState({ data: response.data }); // ✅ อัปเดต state หลังจากได้ response แล้ว
-      console.log("Fetched Data:", response.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+
+fetchData = async (word, prevWord) => {
+  const url = `/check?word=${word}&previous=${prevWord}`;
+  try {
+    const response = await axios.get(url);
+    const changeIndex = response.data.change;
+    const prevRowIndex = this.state.rows.length - 2; // ✅ index ของ row ก่อนหน้า
+
+    if (prevRowIndex >= 0) {
+      this.setState((prevState) => ({
+        data: response.data,
+        changedRows: [
+          ...prevState.changedRows,
+          { rowIndex: prevRowIndex, charIndex: changeIndex }
+        ]
+      }));
     }
-  };
-  
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+};
+
+
 
   handleKeyPress = (event) => {
     const { key } = event;
@@ -126,26 +135,27 @@ class Header extends Component {
       return { rows: newRows };
     });
   };
-  
-  
+
   handleDelete = () => {
     this.setState((prevState) => {
       const newRows = [...prevState.rows];
       const lastRowIndex = newRows.length - 1;
       const lastRow = [...newRows[lastRowIndex]]; // Copy to avoid mutation
-      
-      if (lastRow.length > 0) {
-        lastRow.pop(); // Remove only the last character
-        newRows[lastRowIndex] = lastRow; // Update last row
-      } else if (newRows.length > 1) {
-        newRows.pop(); // ลบแถวถ้ามีมากกว่า 1 แถว
   
-        // 🔹 ถ้าแถวที่ถูกลบคือแถวที่เคยเปลี่ยน className ให้รีเซ็ตค่า
-        const updatedFilledRows = prevState.filledRows.filter((row) => row !== lastRowIndex - 1);
+      if (lastRow.length > 0) {
+        lastRow.pop(); // ลบตัวอักษรสุดท้าย
+        newRows[lastRowIndex] = lastRow; 
+      } else if (newRows.length > 1) {
+        newRows.pop(); // ✅ ลบทั้งแถว (ถ้ามีมากกว่า 1 แถว)
+  
+        // ✅ ลบค่า changedRows ของ row ล่าสุดที่ถูกลบ
+        const updatedChangedRows = prevState.changedRows.filter(
+          (row) => row.rowIndex !== lastRowIndex - 1
+        );
   
         return {
           rows: newRows,
-          filledRows: updatedFilledRows
+          changedRows: updatedChangedRows
         };
       }
   
@@ -153,10 +163,26 @@ class Header extends Component {
     });
   };
   
+
+  HandleCorrectBlock = (rowIndex, charIndex) => {
+    if (!this.state.data || rowIndex === 0) {
+      return false; // ถ้า rowIndex = 0 ไม่มีแถวก่อนหน้าให้เช็ค
+    }
+  
+    const prevRow = this.state.rows[rowIndex - 1]; // ดึงแถวก่อนหน้า
+    return (
+      prevRow &&
+      this.state.data.valid === true &&  // ต้องแน่ใจว่าผลลัพธ์ valid
+      charIndex === this.state.data.change // ต้องตรงกับ index ที่เปลี่ยน
+    );
+  };
+  
+  
   
   render() {
     const { heuristic } = this.props;
     const { rows } = this.state;
+    // const prevWord = this.state.rows[this.state.rows.length - 2].join('').toLowerCase();
     console.log(this.state.rows)
     
     return (
@@ -174,15 +200,20 @@ class Header extends Component {
             {rows.map((row, rowIndex) => (
               <div key={rowIndex} className="row">
                 {
-                  heuristic.startword.split('').map((_, charIndex) => (
+                  heuristic.startword.split('').map((_, charIndex) => {
+                    console.log(`Row: ${rowIndex}, CharIndex: ${charIndex}`); // 🔹 ดูค่าของ charIndex และ rowIndex
+                    return(
                     <textarea
                       key={charIndex}
+                      // className={`block ${this.HandleCorrectBlock(rowIndex, charIndex) ? "transitionBlock" : ""}`}
                       // className={charIndex === 0 && rowIndex === 0 ? `block` : `block ${charIndex === 2 ? "transitionBlock" : ""}`}
-                      className={`block ${charIndex === 0 && rowIndex === 0 ? "currentBlock" : ""} ${this.state.filledRows.includes(rowIndex) && charIndex === (rowIndex === 1 ? 1 : 2) ? "transitionBlock" : ""}`}
+                      // className={`block ${charIndex === 0 && rowIndex === 0 ? "currentBlock" : ""} ${rowIndex === this.state.filledRows.length - 1 && charIndex === this.state.data?.change ? "transitionBlock" : ""}`}
+                      // className={`block ${this.state.changedRows.some(row => row.rowIndex === rowIndex && row.charIndex === charIndex) ? "transitionBlock" : ""}`}
+                      className={`block ${this.state.changedRows.some(row => row.rowIndex === rowIndex && row.charIndex === charIndex) ? "transitionBlock" : ""}` }
                       value={row[charIndex] || ""}
                       readOnly
                     />
-                ))}
+                )})}
               </div>
             ))}
           </div>
