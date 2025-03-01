@@ -17,9 +17,7 @@ class Header extends Component {
       filledRows: [], // เก็บ rowIndex ที่ต้องเปลี่ยนเป็น "filled"
       changedRows : [],
       confirmedRows: [],
-
     };
-    // this.textAreaRef = createRef();
   }
 
   componentDidMount() {
@@ -54,24 +52,6 @@ class Header extends Component {
       return row[row.length - 2].join('').toLowerCase()
     }
   }
-
-  // handleEnter = (event) => {
-  //   this.setState((prevState) => {
-  //     const newRows = [...prevState.rows];
-  //     const lastRow = newRows[newRows.length - 1];
-  //     const word = lastRow.join('').toLowerCase();
-  //     const prevWord = this.checkPrev(newRows, newRows.length);
-      
-  //     if (lastRow.length === this.state.startword.length) {
-  //       this.fetchData(word, prevWord);
-  //       return { 
-  //         rows: [...newRows, []], 
-  //         filledRows: [...prevState.filledRows, newRows.length - 1] 
-  //       };
-  //     }
-  //     return null;
-  //   });
-  // };
 
   handleEnter = (event) => {
     this.setState((prevState) => {
