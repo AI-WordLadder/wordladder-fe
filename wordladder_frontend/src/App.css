@@ -208,3 +208,13 @@ textarea{
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
+
+.loading-spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  font-weight: bold;
+  color: #007bff;
+}

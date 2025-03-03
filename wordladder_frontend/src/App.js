@@ -1,6 +1,6 @@
 import "./App.css";
 import axios from "axios";
-import { Component, useState, useEffect } from "react";
+import { Component, useState, useEffect ,useRef} from "react";
 
 // ------------------- work version ------------------------------------
 
@@ -43,7 +43,18 @@ class Header extends Component {
   }
 
   ResetState = () => {
-    this.setState({ rows: [[]] });
+    this.setState({
+      rows: [[]],
+      filledRows: [],
+      changedRows: [],
+      confirmedRows: [],
+      endword: this.props.heuristic.endword,
+      startword: this.props.heuristic.startword,
+      data: null,
+      wordlength: this.props.heuristic.startword.length,
+      errorStatus:false,
+      winningStatus:false,
+    });
   };
 
   checkPrev = (row, rowLength) => {
@@ -69,6 +80,7 @@ class Header extends Component {
           this.setState((prevState) => {
             if ((word.toLowerCase() === this.state.endword.toLowerCase()) && data.valid){
              this.setState({winningStatus:true})
+             this.props.onWin(true, this.state.rows.length);
              setTimeout(() => {
                this.setState({ winningStatus: true });
              }, 3000);
@@ -220,10 +232,12 @@ class Header extends Component {
   render() {
     const { heuristic } = this.props;
     const { rows } = this.state;
+    console.log("Row Before Random:", rows);
+
     // const prevWord = this.state.rows[this.state.rows.length - 2].join('').toLowerCase();
-    console.log(this.state.rows);
-    if (!heuristic || !heuristic.startword || !heuristic.endword) {
-      return null; 
+    // console.log(this.state.rows);
+    if (!this.props.heuristic || !this.props.heuristic.startword || !this.props.heuristic.endword) {
+      return <div>Loading...</div>; // ป้องกัน error โดยไม่ render ถ้ายังไม่มีข้อมูล
     }
     return (
       <div className="container">
@@ -248,7 +262,7 @@ class Header extends Component {
                       key={charIndex}
                       className={`block 
                         ${
-                          this.state.endword[charIndex].toUpperCase() ===
+                          this.props.heuristic.endword[charIndex].toUpperCase() ===
                           row[charIndex]
                             ? "correctBlock"
                             : ""
@@ -289,7 +303,7 @@ class Header extends Component {
             return (
               <textarea
                 key={index}
-                value={char.toUpperCase()}
+                value={char?.toUpperCase()}
                 className={isCorrect || this.state.winningStatus ? "correctBlock" : ""}
                 readOnly
               />
@@ -365,52 +379,232 @@ class Header extends Component {
             </button>
           </div>
         </div>
-        {this.state.winningStatus && (
-  <>
-    <div className="overlay"></div>
-    <div className="popup">
-      <h2>Statistics</h2>
-      <div className="stats">
-        <div className="stat-block">
-          <div className="stat-number">{this.state.rows?.length || 0}</div>
-          <div className="stat-label">Score</div>
-        </div>
-        <div className="stat-block">
-          <div className="stat-number">{this.props.heuristic?.optimal || 0}</div>
-          <div className="stat-label">Optimal</div>
-        </div>
-      </div>
-      <button className="random-button">
-        Random
-      </button>
-    </div>
-  </>
-)}
-
       </div>
     );
   }
 }
 
+// function App() {
+//   const [data, setData] = useState(null);
+//   const [winningStatus, setWinningStatus] = useState(false);
+//   const [score, setScore] = useState(0);
+
+//   useEffect(() => {
+//     fetchData(3); // ค่าเริ่มต้น
+//   }, []);
+
+//   // ฟังก์ชันที่ parent จะเรียกใช้
+//   const resetChild = () => {
+//     if (childRef.current) {
+//       childRef.current.ResetState();  // เรียกฟังก์ชันใน child component
+//     }
+//   };
+
+//   const fetchData = async (length) => {
+//     try {
+//       const response = await axios.get(`/game?length=${length}&blind=bfs&heuristic=astar`);
+//       setData(response.data);
+//       setWinningStatus(false);
+//       setScore(0);
+//       console.log("Fetched Data:", response.data);
+//     } catch (error) {
+//       console.error("Error fetching data:", error);
+//     }
+//   };
+
+//   const childRef = useRef(null);  // ใช้ ref เพื่อเข้าถึง child component
+
+
+//   return (
+//     <div className="app-container">
+//       {data?.heuristic && (
+//         <Header ref={childRef}
+//           heuristic={data.heuristic}
+//           onWin={(status, rows) => {
+//             setWinningStatus(status);
+//             setScore(rows);
+//           }}
+//         />
+//       )}
+
+//       {winningStatus && (
+//         <div className="popup-overlay">
+//           <div className="popup">
+//             <h2>Statistics</h2>
+//             <div className="stats">
+//               <div className="stat-block">
+//                 <div className="stat-number">{score}</div>
+//                 <div className="stat-label">Score</div>
+//               </div>
+//               <div className="stat-block">
+//                 <div className="stat-number">{data.heuristic?.optimal || 0}</div>
+//                 <div className="stat-label">Optimal</div>
+//               </div>
+//             </div>
+//             <button className="random-button" onClick={() => {
+//               resetChild()
+//               fetchData(Math.floor(Math.random() * 4) + 3)
+//               }}>
+//               Random
+//             </button>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// function App() {
+//   const [data, setData] = useState(null);
+//   const [winningStatus, setWinningStatus] = useState(false);
+//   const [score, setScore] = useState(0);
+//   const [loading, setLoading] = useState(false);  // Add loading state
+
+//   useEffect(() => {
+//     fetchData(3); // Initial fetch with default length
+//   }, []);
+
+//   const resetChild = () => {
+//     if (childRef.current) {
+//       childRef.current.ResetState();  // Reset child component
+//     }
+//   };
+
+//   const fetchData = async (length) => {
+//     setLoading(true);  // Set loading to true when fetch starts
+//     try {
+//       const response = await axios.get(`/game?length=${length}&blind=bfs&heuristic=astar`);
+//       setData(response.data);
+//       setWinningStatus(false);
+//       setScore(0);
+//       console.log("Fetched Data:", response.data);
+//     } catch (error) {
+//       console.error("Error fetching data:", error);
+//     } finally {
+//       setLoading(false);  // Set loading to false once data is fetched or on error
+//     }
+//   };
+
+//   const childRef = useRef(null);  // Use ref to access child component
+
+//   return (
+//     <div className="app-container">
+//       {loading ? (  // Show loading spinner if data is being fetched
+//         <div className="loading-spinner">Loading...</div>
+//       ) : (
+//         data?.heuristic && (
+//           <Header ref={childRef}
+//             heuristic={data.heuristic}
+//             onWin={(status, rows) => {
+//               setWinningStatus(status);
+//               setScore(rows);
+//             }}
+//           />
+//         )
+//       )}
+
+//       {winningStatus && (
+//         <div className="popup-overlay">
+//           <div className="popup">
+//             <h2>Statistics</h2>
+//             <div className="stats">
+//               <div className="stat-block">
+//                 <div className="stat-number">{score}</div>
+//                 <div className="stat-label">Score</div>
+//               </div>
+//               <div className="stat-block">
+//                 <div className="stat-number">{data.heuristic?.optimal || 0}</div>
+//                 <div className="stat-label">Optimal</div>
+//               </div>
+//             </div>
+//             <button className="random-button" onClick={() => {
+//               resetChild();
+//               fetchData(Math.floor(Math.random() * 4) + 3);
+//             }}>
+//               Random
+//             </button>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
 function App() {
   const [data, setData] = useState(null);
+  const [winningStatus, setWinningStatus] = useState(false);
+  const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(false);  // Add loading state
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          "/game?length=3&blind=bfs&heuristoc=astar"
-        );
-        setData(response.data);
-        console.log("Fetched Data:", response.data); // 🔹 Print ข้อมูลที่ได้จาก API
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    fetchData();
-  }, []); // รันแค่ครั้งเดียวตอน component โหลด
+    fetchData(3); // Initial fetch with default length
+  }, []);
 
-  return <div>{data && <Header heuristic={data.heuristic} />}</div>;
+  const resetChild = () => {
+    if (childRef.current) {
+      childRef.current.ResetState();  // Reset child component
+    }
+  };
+
+  const fetchData = async (length) => {
+    setLoading(true);  // Set loading to true when fetch starts
+    try {
+      const response = await axios.get(`/game?length=${length}&blind=bfs&heuristic=astar`);
+      setData(response.data);
+      setWinningStatus(false);
+      setScore(0);
+      console.log("Fetched Data:", response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);  // Set loading to false once data is fetched or on error
+    }
+  };
+
+  const childRef = useRef(null);  // Use ref to access child component
+
+  return (
+    <div className="app-container">
+      {loading ? (  // Show loading spinner if data is being fetched
+        <div className="loading-spinner">Loading...</div>
+      ) : (
+        data?.heuristic && (
+          <Header ref={childRef}
+            heuristic={data.heuristic}
+            onWin={(status, rows) => {
+              setWinningStatus(status);
+              setScore(rows);
+            }}
+          />
+        )
+      )}
+
+      {/* Only show pop-up if not loading and winningStatus is true */}
+      {!loading && winningStatus && (
+        <div className="popup-overlay">
+          <div className="popup">
+            <h2>Statistics</h2>
+            <div className="stats">
+              <div className="stat-block">
+                <div className="stat-number">{score}</div>
+                <div className="stat-label">Score</div>
+              </div>
+              <div className="stat-block">
+                <div className="stat-number">{data.heuristic?.optimal || 0}</div>
+                <div className="stat-label">Optimal</div>
+              </div>
+            </div>
+            <button className="random-button" onClick={() => {
+              resetChild();
+              fetchData(Math.floor(Math.random() * 4) + 3);
+            }}>
+              Random
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 
