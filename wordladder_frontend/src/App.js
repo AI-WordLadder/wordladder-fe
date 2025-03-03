@@ -70,7 +70,7 @@ class Header extends Component {
             if ((word.toLowerCase() === this.state.endword.toLowerCase()) && data.valid){
              this.setState({winningStatus:true})
              setTimeout(() => {
-               this.setState({ winningStatus: false });
+               this.setState({ winningStatus: true });
              }, 3000);
             }else {
               return {
@@ -117,6 +117,11 @@ class Header extends Component {
   handleKeyPress = (event) => {
     const { key } = event;
 
+    // 🔥 ป้องกันทุกการกดแป้นพิมพ์ถ้าเกมจบแล้ว
+    if (this.state.winningStatus) {
+      return;
+    }
+
     if (/[a-zA-Z]/.test(key) && key.length === 1) {
       event.preventDefault();
       this.setState((prevState) => {
@@ -131,12 +136,14 @@ class Header extends Component {
         return { rows: newRows };
       });
     } else if (key === "Backspace") {
+      event.preventDefault(); // 🔥 ป้องกันการลบ ถ้าเกมจบแล้ว
       this.handleDelete();
     } else if (key === "Enter") {
       event.preventDefault();
       this.handleEnter(event);
     }
-  };
+};
+
 
   handleButtonClick = (char) => {
     // event.preventDefault();
@@ -155,29 +162,34 @@ class Header extends Component {
   };
 
   handleDelete = () => {
-    this.setState((prevState) => {
-      const newRows = [...prevState.rows];
-      const lastRowIndex = newRows.length - 1;
-      const lastRow = [...newRows[lastRowIndex]]; // Copy to avoid mutation
+    if (this.state.winningStatus) {
+      return; // ป้องกันการพิมพ์หรือลบเมื่อชนะแล้ว
+    }else{
 
-      if (lastRow.length > 0) {
-        lastRow.pop(); // ลบตัวอักษรสุดท้าย
-        newRows[lastRowIndex] = lastRow;
-      } else if (newRows.length > 1) {
-        newRows.pop();
-
-        const updatedChangedRows = prevState.changedRows.filter(
-          (row) => row.rowIndex !== lastRowIndex - 1
-        );
-
-        return {
-          rows: newRows,
-          changedRows: updatedChangedRows,
-        };
-      }
-
-      return { rows: newRows };
-    });
+      this.setState((prevState) => {
+        const newRows = [...prevState.rows];
+        const lastRowIndex = newRows.length - 1;
+        const lastRow = [...newRows[lastRowIndex]]; // Copy to avoid mutation
+  
+        if (lastRow.length > 0) {
+          lastRow.pop(); // ลบตัวอักษรสุดท้าย
+          newRows[lastRowIndex] = lastRow;
+        } else if (newRows.length > 1) {
+          newRows.pop();
+  
+          const updatedChangedRows = prevState.changedRows.filter(
+            (row) => row.rowIndex !== lastRowIndex - 1
+          );
+  
+          return {
+            rows: newRows,
+            changedRows: updatedChangedRows,
+          };
+        }
+  
+        return { rows: newRows };
+      });
+    }
   };
 
   HandleCorrectBlock = (rowIndex, charIndex) => {
@@ -193,12 +205,26 @@ class Header extends Component {
     );
   };
 
+  generateRandomNumber = () => {
+    const randomValue = Math.floor(Math.random() * (6 - 3 + 1)) + 3;
+    
+    // ✅ ตรวจสอบว่ามี sendRandomNumber ใน props หรือไม่ ก่อนเรียกใช้
+    if (this.props.sendRandomNumber) {
+      console.log(`RandomNumber : ${randomValue}`)
+      this.props.sendRandomNumber(randomValue);
+    } else {
+      console.error("sendRandomNumber is not provided!");
+    }
+  };
+
   render() {
     const { heuristic } = this.props;
     const { rows } = this.state;
     // const prevWord = this.state.rows[this.state.rows.length - 2].join('').toLowerCase();
     console.log(this.state.rows);
-
+    if (!heuristic || !heuristic.startword || !heuristic.endword) {
+      return null; 
+    }
     return (
       <div className="container">
         <div className="gameplay">
@@ -245,12 +271,33 @@ class Header extends Component {
               </div>
             ))}
           </div>
-          {/* End Word */}
-          <div className="textarea endword">
-            {heuristic.endword.split("").map((char, index) => (
-              <textarea key={index} value={char.toUpperCase()} readOnly />
-            ))}
-          </div>
+                <div className="textarea endword">
+          {heuristic.endword.split("").map((char, index) => {
+            // ดึงแถวล่าสุดที่ถูกยืนยัน
+            const lastConfirmedRowIndex = this.state.confirmedRows.length > 0 
+              ? this.state.confirmedRows[this.state.confirmedRows.length - 1] 
+              : null;
+            
+            const lastConfirmedRow = lastConfirmedRowIndex !== null 
+              ? this.state.rows[lastConfirmedRowIndex] 
+              : [];
+
+            // เช็กว่าตัวอักษรตรงกับ endword หรือไม่
+            const isCorrect = lastConfirmedRow.length === heuristic.endword.length &&
+                              lastConfirmedRow[index]?.toUpperCase() === char.toUpperCase();
+
+            return (
+              <textarea
+                key={index}
+                value={char.toUpperCase()}
+                className={isCorrect || this.state.winningStatus ? "correctBlock" : ""}
+                readOnly
+              />
+            );
+          })}
+        </div>
+
+
 
         {/* Pop-up*/}
         {this.state.errorStatus ? (
@@ -318,6 +365,28 @@ class Header extends Component {
             </button>
           </div>
         </div>
+        {this.state.winningStatus && (
+  <>
+    <div className="overlay"></div>
+    <div className="popup">
+      <h2>Statistics</h2>
+      <div className="stats">
+        <div className="stat-block">
+          <div className="stat-number">{this.state.rows?.length || 0}</div>
+          <div className="stat-label">Score</div>
+        </div>
+        <div className="stat-block">
+          <div className="stat-number">{this.props.heuristic?.optimal || 0}</div>
+          <div className="stat-label">Optimal</div>
+        </div>
+      </div>
+      <button className="random-button">
+        Random
+      </button>
+    </div>
+  </>
+)}
+
       </div>
     );
   }
@@ -343,5 +412,6 @@ function App() {
 
   return <div>{data && <Header heuristic={data.heuristic} />}</div>;
 }
+
 
 export default App;
