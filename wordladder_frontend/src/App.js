@@ -1,6 +1,7 @@
 import './App.css';
 import axios from 'axios'
 import { Component, useState, useEffect} from 'react';
+import Navbar from "./navbar.jsx";
 
 // ------------------- work version ------------------------------------
 
@@ -292,6 +293,7 @@ function App() {
   
   return (
     <div>
+      <Navbar />
       {data && <Header heuristic={data.heuristic} />}
     </div>
   );
