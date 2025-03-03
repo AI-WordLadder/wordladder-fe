@@ -36,15 +36,21 @@ body{
   background-color: #f34f43; /* Red background for delete button */
   color: white;
 }
-.errorMessage{
+.Message{
   color:white;
   margin-top: .5rem;
   border:2px,solid, black;
   border-radius: 10px;
   padding:0.25rem;
-  background-color: #f34f43;
   text-align: center;
 
+}
+.error{
+  background-color: #f34f43;
+}
+
+.win{
+  background-color: green;
 }
 button{
   /* background-color: #d3d3d3; */
@@ -69,7 +75,7 @@ button{
   transform: scale(1.1);
 }
 
-.enterButton { 
+.enterButton {
   text-transform: capitalize;
   width: 100px;
  }

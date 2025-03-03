@@ -10,6 +10,8 @@ class Header extends Component {
     this.state = {
       data: null,
       text: "",
+      errorStatus:false,
+      winningStatus:false,
       startword: props.heuristic.startword, // Props for heuristic
       endword: props.heuristic.endword,
       wordlength: props.heuristic.startword.length,
@@ -65,13 +67,21 @@ class Header extends Component {
         console.log(data);
         if (data && data.valid) {
           this.setState((prevState) => {
-            return {
+            if ((word.toLowerCase() === this.state.endword.toLowerCase()) && data.valid){
+             this.setState({winningStatus:true})
+             setTimeout(() => {
+               this.setState({ winningStatus: false });
+             }, 3000);
+            }else {
+              return {
               rows: [...newRows, []],
               filledRows: [...prevState.filledRows, lastRowIndex],
               confirmedRows: [...prevState.confirmedRows, lastRowIndex],
-            };
+            };}
           });
-        } else {
+         
+         } else {
+
           this.setState({errorStatus:true});
           setTimeout(() => {
             this.setState({ errorStatus: false });
@@ -242,13 +252,18 @@ class Header extends Component {
             ))}
           </div>
 
-        {/* Pop-up Error */}
+        {/* Pop-up*/}
         {this.state.errorStatus ? (
-          <div className="errorMessage">{this.state.data.message}</div>
+          <div className="Message error">{this.state.data.message}</div>
         ) : (
           null
         )}
         </div>
+        {this.state.winningStatus?(
+          <div className="Message win">You Win!!!</div>
+        ):(
+          null
+        )}
 
         {/* Reset Bttn */}
         <button class="clearBoardButton" onClick={this.ResetState}>
