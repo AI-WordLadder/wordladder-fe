@@ -1,7 +1,7 @@
 import './App.css';
 import axios from 'axios'
-import { Component, useState, useEffect} from 'react';
-import Navbar from "./navbar.jsx";
+import { Component, useState, useEffect } from 'react';
+
 
 // ------------------- work version ------------------------------------
 
@@ -16,7 +16,7 @@ class Header extends Component {
       wordlength: props.heuristic.startword.length,
       rows: [[]], // Store multiple rows of textareas
       filledRows: [], // เก็บ rowIndex ที่ต้องเปลี่ยนเป็น "filled"
-      changedRows : [],
+      changedRows: [],
       confirmedRows: [],
     };
   }
@@ -41,62 +41,62 @@ class Header extends Component {
     }
   }
 
-  ResetState=() =>{
-    this.setState({rows: [[]]});  
+  ResetState = () => {
+    this.setState({ rows: [[]] });
   }
 
-  checkPrev = (row,rowLength) => {
-    if (rowLength === 1){
+  checkPrev = (row, rowLength) => {
+    if (rowLength === 1) {
       return this.state.startword
     }
-    else{
+    else {
       return row[row.length - 2].join('').toLowerCase()
     }
   }
 
   handleEnter = (event) => {
     this.setState((prevState) => {
-      const newRows = [...prevState.rows]; 
+      const newRows = [...prevState.rows];
       const lastRowIndex = newRows.length - 1;
-      const lastRow = newRows[lastRowIndex]; 
+      const lastRow = newRows[lastRowIndex];
       const word = lastRow.join('').toLowerCase();
       const prevWord = this.checkPrev(newRows, newRows.length);
-  
-      if (lastRow.length === this.state.startword.length) { 
+
+      if (lastRow.length === this.state.startword.length) {
         this.fetchData(word, prevWord);
-  
-        return { 
-          rows: [...newRows, []], 
-          filledRows: [...prevState.filledRows, lastRowIndex], 
+
+        return {
+          rows: [...newRows, []],
+          filledRows: [...prevState.filledRows, lastRowIndex],
           confirmedRows: [...prevState.confirmedRows, lastRowIndex] // ✅ เพิ่ม rowIndex ที่ถูกตรวจสอบแล้ว
         };
       }
       return null;
     });
   };
-  
 
 
-fetchData = async (word, prevWord) => {
-  const url = `/check?word=${word}&previous=${prevWord}`;
-  try {
-    const response = await axios.get(url);
-    const changeIndex = response.data.change;
-    const prevRowIndex = this.state.rows.length - 2; // ✅ index ของ row ก่อนหน้า
 
-    if (prevRowIndex >= 0) {
-      this.setState((prevState) => ({
-        data: response.data,
-        changedRows: [
-          ...prevState.changedRows,
-          { rowIndex: prevRowIndex, charIndex: changeIndex }
-        ]
-      }));
+  fetchData = async (word, prevWord) => {
+    const url = `/check?word=${word}&previous=${prevWord}`;
+    try {
+      const response = await axios.get(url);
+      const changeIndex = response.data.change;
+      const prevRowIndex = this.state.rows.length - 2; // ✅ index ของ row ก่อนหน้า
+
+      if (prevRowIndex >= 0) {
+        this.setState((prevState) => ({
+          data: response.data,
+          changedRows: [
+            ...prevState.changedRows,
+            { rowIndex: prevRowIndex, charIndex: changeIndex }
+          ]
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  }
-};
+  };
 
 
 
@@ -113,7 +113,7 @@ fetchData = async (word, prevWord) => {
           lastRow.push(key.toUpperCase()); // Add character only once
           newRows[lastRowIndex] = lastRow; // Update the last row
         }
-  
+
         return { rows: newRows };
       });
     } else if (key === "Backspace") {
@@ -123,7 +123,7 @@ fetchData = async (word, prevWord) => {
       this.handleEnter(event);
     }
   };
-  
+
   handleButtonClick = (char) => {
     // event.preventDefault();
     this.setState((prevState) => {
@@ -145,34 +145,34 @@ fetchData = async (word, prevWord) => {
       const newRows = [...prevState.rows];
       const lastRowIndex = newRows.length - 1;
       const lastRow = [...newRows[lastRowIndex]]; // Copy to avoid mutation
-  
+
       if (lastRow.length > 0) {
         lastRow.pop(); // ลบตัวอักษรสุดท้าย
-        newRows[lastRowIndex] = lastRow; 
+        newRows[lastRowIndex] = lastRow;
       } else if (newRows.length > 1) {
         newRows.pop(); // ✅ ลบทั้งแถว (ถ้ามีมากกว่า 1 แถว)
-  
+
         // ✅ ลบค่า changedRows ของ row ล่าสุดที่ถูกลบ
         const updatedChangedRows = prevState.changedRows.filter(
           (row) => row.rowIndex !== lastRowIndex - 1
         );
-  
+
         return {
           rows: newRows,
           changedRows: updatedChangedRows
         };
       }
-  
+
       return { rows: newRows };
     });
   };
-  
+
 
   HandleCorrectBlock = (rowIndex, charIndex) => {
     if (!this.state.data || rowIndex === 0) {
       return false; // ถ้า rowIndex = 0 ไม่มีแถวก่อนหน้าให้เช็ค
     }
-  
+
     const prevRow = this.state.rows[rowIndex - 1]; // ดึงแถวก่อนหน้า
     return (
       prevRow &&
@@ -180,15 +180,15 @@ fetchData = async (word, prevWord) => {
       charIndex === this.state.data.change // ต้องตรงกับ index ที่เปลี่ยน
     );
   };
-  
-  
-  
+
+
+
   render() {
     const { heuristic } = this.props;
     const { rows } = this.state;
     // const prevWord = this.state.rows[this.state.rows.length - 2].join('').toLowerCase();
     console.log(this.state.rows)
-    
+
     return (
       <div className="container">
         <div className="gameplay">
@@ -206,17 +206,18 @@ fetchData = async (word, prevWord) => {
                 {
                   heuristic.startword.split('').map((_, charIndex) => {
                     console.log(`Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`); // 🔹 ดูค่าของ charIndex และ rowIndex
-                    return(
-                    <textarea
-                      key={charIndex}
-                      className={`block 
+                    return (
+                      <textarea
+                        key={charIndex}
+                        className={`block 
                         ${(this.state.endword[charIndex].toUpperCase() === row[charIndex]) ? "correctBlock" : ""} 
                         ${this.state.changedRows.some(row => row.rowIndex === rowIndex && row.charIndex === charIndex) ? "transitionBlock" : ""}
                       `}
-                      value={row[charIndex] || ""}
-                      readOnly
-                    />
-                )})}
+                        value={row[charIndex] || ""}
+                        readOnly
+                      />
+                    )
+                  })}
               </div>
             ))}
           </div>
@@ -231,7 +232,7 @@ fetchData = async (word, prevWord) => {
         {/* Pop-up Error */}
 
         {/* Reset Bttn */}
-        <div class="Popup " onClick={this.ResetState}>{}</div>
+        <div class="Popup " onClick={this.ResetState}>{ }</div>
 
 
         {/* Reset Bttn */}
@@ -277,7 +278,7 @@ fetchData = async (word, prevWord) => {
 
 function App() {
   const [data, setData] = useState(null);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -290,10 +291,9 @@ function App() {
     };
     fetchData();
   }, []); // รันแค่ครั้งเดียวตอน component โหลด
-  
+
   return (
     <div>
-      <Navbar />
       {data && <Header heuristic={data.heuristic} />}
     </div>
   );
