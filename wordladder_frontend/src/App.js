@@ -339,7 +339,7 @@ function App() {
       }
     };
     fetchData();
-  }, []); // รันแค่ครั้งเดียวตอน component โหลด
+  },[]); // รันแค่ครั้งเดียวตอน component โหลด
 
   return <div>{data && <Header heuristic={data.heuristic} />}</div>;
 }
