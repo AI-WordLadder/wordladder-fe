@@ -250,11 +250,12 @@ textarea {
   background-color: rgb(235, 235, 235);
   place-items: left;
   align-items: center;
-  padding: 1vh 5vw 1vh 5vw;
+  padding: 1vh 3vw 1vh 3vw;
   border-radius: 10px;
   height: fit-content;
   display: grid;
   grid-auto-flow: column;
+  margin-bottom:3vh;
 }
 
 .barbutton {
