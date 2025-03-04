@@ -288,7 +288,12 @@ textarea {
   background-color: darkcyan;
 }
 
-
+.answer{
+  display: grid;
+  grid-auto-flow: column;
+  gap: 5vw;
+  margin: 2vh 0 2vh 0;
+}
 
 .graph {
   display: grid;

@@ -35,9 +35,12 @@ class Header extends Component {
       endword: props.heuristic.endword,
       wordlength: props.heuristic.startword.length,
       rows: [[]], // Store multiple rows of textareas
+      airows: [[]], // Store multiple rows of AI textareas
       filledRows: [], // เก็บ rowIndex ที่ต้องเปลี่ยนเป็น "filled"
       changedRows: [],
       confirmedRows: [],
+      showAIRows: false
+
     };
   }
 
@@ -48,6 +51,12 @@ class Header extends Component {
   componentWillUnmount() {
     document.removeEventListener("keydown", this.handleKeyPress);
   }
+
+  toggleAIRows = () => {
+    this.setState((prevState) => ({
+      showAIRows: !prevState.showAIRows, // Toggle the state
+    }));
+  };
 
   componentDidUpdate(prevProps) {
     if (prevProps.heuristic.startword !== this.props.heuristic.startword) {
@@ -73,6 +82,7 @@ class Header extends Component {
       wordlength: this.props.heuristic.startword.length,
       errorStatus: false,
       winningStatus: false,
+      showAIRows: false,
     });
   };
 
@@ -250,6 +260,7 @@ class Header extends Component {
   };
 
   handleAI = () => {
+    this.state.showAIRows = false;
     // Push the uppercase version of the words to rows
     this.props.heuristic.path.slice(1).forEach((item) => {
       const key = Object.keys(item)[0];
@@ -259,7 +270,20 @@ class Header extends Component {
       this.setState(prevState => ({
         rows: [...prevState.rows, uppercasedLetters]
       }));
-      this .state.rows.pop(0)
+      this.state.rows.pop(0)
+      console.log("Key split to uppercase:", uppercasedLetters); // For debugging
+    });
+
+    this.props.blind.path.slice(1).forEach((item) => {
+      const key = Object.keys(item)[0];
+      const uppercasedLetters = key.split("").map(char => char.toUpperCase());
+
+      // Update state using setState (avoid direct mutation)
+      this.setState(prevState => ({
+        airows: [...prevState.airows, uppercasedLetters]
+      }));
+      this.state.airows.pop(0);
+      this.state.showAIRows = true;
       console.log("Key split to uppercase:", uppercasedLetters); // For debugging
     });
   };
@@ -267,8 +291,10 @@ class Header extends Component {
   render() {
     const { heuristic } = this.props;
     const { rows } = this.state;
+    const { airows } = this.state;
     console.log("Row Before Random:", rows);
-    console.log("Row:" , this.state.rows)
+    console.log("Row:", this.state.rows)
+    console.log("AI Row:", this.state.airows)
     // const prevWord = this.state.rows[this.state.rows.length - 2].join('').toLowerCase();
     // console.log(this.state.rows);
     if (!this.props.heuristic || !this.props.heuristic.startword || !this.props.heuristic.endword) {
@@ -289,33 +315,64 @@ class Header extends Component {
 
 
           {/* Dynamic Rows */}
-
-          <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
-            {rows.map((row, rowIndex) => (
-              <div key={rowIndex} className="row">
-                {heuristic.startword.split("").map((_, charIndex) => {
-                  console.log(
-                    `Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`
-                  ); // 🔹 ดูค่าของ charIndex และ rowIndex
-                  return (
-                    <textarea
-                      key={charIndex}
-                      className={`block 
+          <div className="answer">
+              <div>{this.state.showAIRows && <h2>Heuristic Search</h2>}
+            <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
+              {rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="row">
+                  {heuristic.startword.split("").map((_, charIndex) => {
+                    console.log(
+                      `Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`
+                    ); // 🔹 ดูค่าของ charIndex และ rowIndex
+                    return (
+                      <textarea
+                        key={charIndex}
+                        className={`block 
                         ${this.props.heuristic.endword[charIndex].toUpperCase() ===
-                          row[charIndex]
-                          ? "correctBlock"
-                          : ""
-                        } 
+                            row[charIndex]
+                            ? "correctBlock"
+                            : ""
+                          } 
                         ${this.props.heuristic.path[rowIndex][Object.keys(this.props.heuristic.path[rowIndex])[0]] === charIndex ? "transitionBlock" : ""}
                  
                       `}
-                      value={row[charIndex] || ""}
-                      readOnly
-                    />
-                  );
-                })}
-              </div>
-            ))}
+                        value={row[charIndex] || ""}
+                        readOnly
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+            </div>
+            {this.state.showAIRows && <div><h2>Blind search</h2>
+              <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
+                {airows.map((row, rowIndex) => (
+                  <div key={rowIndex} className="row">
+                    {heuristic.startword.split("").map((_, charIndex) => {
+                      console.log(
+                        `Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`
+                      ); // 🔹 ดูค่าของ charIndex และ rowIndex
+                      return (
+                        <textarea
+                          key={charIndex}
+                          className={`block 
+                        ${this.props.heuristic.endword[charIndex].toUpperCase() ===
+                              row[charIndex]
+                              ? "correctBlock"
+                              : ""
+                            } 
+                        ${this.props.blind.path[rowIndex][Object.keys(this.props.blind.path[rowIndex])[0]] === charIndex ? "transitionBlock" : ""}
+                 
+                      `}
+                          value={row[charIndex] || ""}
+                          readOnly
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div></div>}
           </div>
           <div className="textarea endword">
             {heuristic.endword.split("").map((char, index) => {
@@ -466,11 +523,19 @@ function App() {
         label: 'Time Comparison (sec)',
         // data: [data?.heuristic?.time || 0, data?.heuristic?.time || 0], // ค่าจาก heuristic.time และ blind.time
         data: [parseFloat(data?.heuristic?.time) || 0, parseFloat(data?.blind?.time) || 0,],
-        backgroundColor: ['#42a5f5', '#ff7043'], // สีแถบ
+        backgroundColor: ['rgba(95, 158, 160,0.5)', 'rgba(255, 159, 64, 0.5)'], // สีแถบ
         borderColor: ['#1e88e5', '#d32f2f'], // สีเส้นขอบ
         borderWidth: 1,
       },
     ],
+    options: {
+      indexAxis: 'y', // This makes the bar chart horizontal
+      scales: {
+        x: {
+          beginAtZero: true,
+        },
+      },
+    },
   };
 
   const chartspace = {
@@ -480,11 +545,19 @@ function App() {
         label: 'Space Comparison (KB)',
         // data: [data?.heuristic?.time || 0, data?.heuristic?.time || 0], // ค่าจาก heuristic.time และ blind.time
         data: [parseFloat(data?.heuristic?.space) || 0, parseFloat(data?.blind?.space) || 0,],
-        backgroundColor: ['#42a5f5', '#ff7043'], // สีแถบ
+        backgroundColor: ['rgba(95, 158, 160, 0.5)', 'rgba(255, 159, 64, 0.5)'], // สีแถบ
         borderColor: ['#1e88e5', '#d32f2f'], // สีเส้นขอบ
         borderWidth: 1,
       },
     ],
+    options: {
+      indexAxis: 'y', // This makes the bar chart horizontal
+      scales: {
+        x: {
+          beginAtZero: true,
+        },
+      },
+    },
   };
 
   return (
@@ -520,6 +593,7 @@ function App() {
             </div>
             <Header ref={childRef}
               heuristic={data.heuristic}
+              blind={data.blind}
               bfs={data.bfs}
               onWin={(status, rows) => {
                 setWinningStatus(status);
@@ -531,9 +605,9 @@ function App() {
               <div><h2>Time and Space Comparison: Heuristic vs Blind</h2>
                 <div className="chart-container">
                   <div className="graph">
-                  <Bar data={chartData} />
-                  <Bar data={chartspace} />
-                </div></div>
+                    <Bar data={chartData} options={chartData.options} />
+                    <Bar data={chartspace} options={chartspace.options} />
+                  </div></div>
               </div>
             )}
           </div>
