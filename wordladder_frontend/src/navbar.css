@@ -1,8 +1,41 @@
 .Navbar{
     border-bottom: 1px solid rgb(234, 234, 234);
     background-color: rgb(235, 235, 235);
-    place-items: top;
-    height: 5vh;
+    place-items: left;
+    align-items: center;
+    /* justify-content: center; */
+    height: 10vh;
     display: grid;
     grid-auto-flow: column;
+}
+
+.barbutton{
+    background-color: rgb(235, 235,235);
+    width: fit-content;
+    height: fit-content;
+    /* padding: 5%; */
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    color: black;
+}
+
+.barbutton:hover{
+    background-color: rgb(199, 199, 199);
+}
+
+.blind{
+background-color: rgb(151, 244, 213);
+}
+
+.barbutton:hover{
+    background-color:cadetblue;
+}
+
+.heuristic{
+    background-color:lightblue;
+}
+
+.heuristic:hover{
+    background-color:darkcyan;
 }
