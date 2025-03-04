@@ -1,8 +1,27 @@
 import "./App.css";
 import axios from "axios";
-import { Component, useState, useEffect ,useRef} from "react";
+import { Component, useState, useEffect, useRef } from "react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
 
-// ------------------- work version ------------------------------------
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+
 
 class Header extends Component {
   constructor(props) {
@@ -10,15 +29,18 @@ class Header extends Component {
     this.state = {
       data: null,
       text: "",
-      errorStatus:false,
-      winningStatus:false,
+      errorStatus: false,
+      winningStatus: false,
       startword: props.heuristic.startword, // Props for heuristic
       endword: props.heuristic.endword,
       wordlength: props.heuristic.startword.length,
       rows: [[]], // Store multiple rows of textareas
+      airows: [[]], // Store multiple rows of AI textareas
       filledRows: [], // เก็บ rowIndex ที่ต้องเปลี่ยนเป็น "filled"
       changedRows: [],
       confirmedRows: [],
+      showAIRows: false
+
     };
   }
 
@@ -29,6 +51,12 @@ class Header extends Component {
   componentWillUnmount() {
     document.removeEventListener("keydown", this.handleKeyPress);
   }
+
+  toggleAIRows = () => {
+    this.setState((prevState) => ({
+      showAIRows: !prevState.showAIRows, // Toggle the state
+    }));
+  };
 
   componentDidUpdate(prevProps) {
     if (prevProps.heuristic.startword !== this.props.heuristic.startword) {
@@ -52,8 +80,9 @@ class Header extends Component {
       startword: this.props.heuristic.startword,
       data: null,
       wordlength: this.props.heuristic.startword.length,
-      errorStatus:false,
-      winningStatus:false,
+      errorStatus: false,
+      winningStatus: false,
+      showAIRows: false,
     });
   };
 
@@ -78,28 +107,29 @@ class Header extends Component {
         console.log(data);
         if (data && data.valid) {
           this.setState((prevState) => {
-            if ((word.toLowerCase() === this.state.endword.toLowerCase()) && data.valid){
-             this.setState({winningStatus:true})
-             this.props.onWin(true, this.state.rows.length);
-             setTimeout(() => {
-               this.setState({ winningStatus: true });
-             }, 3000);
-            }else {
+            if ((word.toLowerCase() === this.state.endword.toLowerCase()) && data.valid) {
+              this.setState({ winningStatus: true })
+              this.props.onWin(true, this.state.rows.length);
+              setTimeout(() => {
+                this.setState({ winningStatus: true });
+              }, 3000);
+            } else {
               return {
-              rows: [...newRows, []],
-              filledRows: [...prevState.filledRows, lastRowIndex],
-              confirmedRows: [...prevState.confirmedRows, lastRowIndex],
-            };}
+                rows: [...newRows, []],
+                filledRows: [...prevState.filledRows, lastRowIndex],
+                confirmedRows: [...prevState.confirmedRows, lastRowIndex],
+              };
+            }
           });
-         
-         } else {
 
-          this.setState({errorStatus:true});
+        } else {
+
+          this.setState({ errorStatus: true });
           setTimeout(() => {
             this.setState({ errorStatus: false });
           }, 3000);
         }
-      } catch {}
+      } catch { }
       return null;
     }
   };
@@ -154,7 +184,7 @@ class Header extends Component {
       event.preventDefault();
       this.handleEnter(event);
     }
-};
+  };
 
 
   handleButtonClick = (char) => {
@@ -176,29 +206,29 @@ class Header extends Component {
   handleDelete = () => {
     if (this.state.winningStatus) {
       return; // ป้องกันการพิมพ์หรือลบเมื่อชนะแล้ว
-    }else{
+    } else {
 
       this.setState((prevState) => {
         const newRows = [...prevState.rows];
         const lastRowIndex = newRows.length - 1;
         const lastRow = [...newRows[lastRowIndex]]; // Copy to avoid mutation
-  
+
         if (lastRow.length > 0) {
           lastRow.pop(); // ลบตัวอักษรสุดท้าย
           newRows[lastRowIndex] = lastRow;
         } else if (newRows.length > 1) {
           newRows.pop();
-  
+
           const updatedChangedRows = prevState.changedRows.filter(
             (row) => row.rowIndex !== lastRowIndex - 1
           );
-  
+
           return {
             rows: newRows,
             changedRows: updatedChangedRows,
           };
         }
-  
+
         return { rows: newRows };
       });
     }
@@ -219,7 +249,7 @@ class Header extends Component {
 
   generateRandomNumber = () => {
     const randomValue = Math.floor(Math.random() * (6 - 3 + 1)) + 3;
-    
+
     // ✅ ตรวจสอบว่ามี sendRandomNumber ใน props หรือไม่ ก่อนเรียกใช้
     if (this.props.sendRandomNumber) {
       console.log(`RandomNumber : ${randomValue}`)
@@ -229,17 +259,51 @@ class Header extends Component {
     }
   };
 
+  handleAI = () => {
+    this.state.showAIRows = false;
+    // Push the uppercase version of the words to rows
+    this.props.heuristic.path.slice(1).forEach((item) => {
+      const key = Object.keys(item)[0];
+      const uppercasedLetters = key.split("").map(char => char.toUpperCase());
+
+      // Update state using setState (avoid direct mutation)
+      this.setState(prevState => ({
+        rows: [...prevState.rows, uppercasedLetters]
+      }));
+      this.state.rows.pop(0)
+      console.log("Key split to uppercase:", uppercasedLetters); // For debugging
+    });
+
+    this.props.blind.path.slice(1).forEach((item) => {
+      const key = Object.keys(item)[0];
+      const uppercasedLetters = key.split("").map(char => char.toUpperCase());
+
+      // Update state using setState (avoid direct mutation)
+      this.setState(prevState => ({
+        airows: [...prevState.airows, uppercasedLetters]
+      }));
+      this.state.airows.pop(0);
+      this.state.showAIRows = true;
+      console.log("Key split to uppercase:", uppercasedLetters); // For debugging
+    });
+  };
+
   render() {
     const { heuristic } = this.props;
     const { rows } = this.state;
+    const { airows } = this.state;
     console.log("Row Before Random:", rows);
-
+    console.log("Row:", this.state.rows)
+    console.log("AI Row:", this.state.airows)
     // const prevWord = this.state.rows[this.state.rows.length - 2].join('').toLowerCase();
     // console.log(this.state.rows);
     if (!this.props.heuristic || !this.props.heuristic.startword || !this.props.heuristic.endword) {
       return <div>Loading...</div>; // ป้องกัน error โดยไม่ render ถ้ายังไม่มีข้อมูล
     }
+
+
     return (
+
       <div className="container">
         <div className="gameplay">
           {/* Start Word */}
@@ -249,134 +313,161 @@ class Header extends Component {
             ))}
           </div>
 
+
           {/* Dynamic Rows */}
-          <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
-            {rows.map((row, rowIndex) => (
-              <div key={rowIndex} className="row">
-                {heuristic.startword.split("").map((_, charIndex) => {
-                  console.log(
-                    `Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`
-                  ); // 🔹 ดูค่าของ charIndex และ rowIndex
-                  return (
-                    <textarea
-                      key={charIndex}
-                      className={`block 
-                        ${
-                          this.props.heuristic.endword[charIndex].toUpperCase() ===
-                          row[charIndex]
+          <div className="answer">
+              <div>{this.state.showAIRows && <h2>Heuristic Search</h2>}
+            <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
+              {rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="row">
+                  {heuristic.startword.split("").map((_, charIndex) => {
+                    console.log(
+                      `Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`
+                    ); // 🔹 ดูค่าของ charIndex และ rowIndex
+                    return (
+                      <textarea
+                        key={charIndex}
+                        className={`block 
+                        ${this.props.heuristic.endword[charIndex].toUpperCase() ===
+                            row[charIndex]
                             ? "correctBlock"
                             : ""
-                        } 
-                        ${
-                          this.state.changedRows.some(
-                            (row) =>
-                              row.rowIndex === rowIndex &&
-                              row.charIndex === charIndex
-                          )
-                            ? "transitionBlock"
-                            : ""
-                        }
+                          } 
+                        ${this.props.heuristic.path[rowIndex][Object.keys(this.props.heuristic.path[rowIndex])[0]] === charIndex ? "transitionBlock" : ""}
+                 
                       `}
-                      value={row[charIndex] || ""}
-                      readOnly
-                    />
-                  );
-                })}
-              </div>
-            ))}
+                        value={row[charIndex] || ""}
+                        readOnly
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+            </div>
+            {this.state.showAIRows && <div><h2>Blind search</h2>
+              <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
+                {airows.map((row, rowIndex) => (
+                  <div key={rowIndex} className="row">
+                    {heuristic.startword.split("").map((_, charIndex) => {
+                      console.log(
+                        `Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`
+                      ); // 🔹 ดูค่าของ charIndex และ rowIndex
+                      return (
+                        <textarea
+                          key={charIndex}
+                          className={`block 
+                        ${this.props.heuristic.endword[charIndex].toUpperCase() ===
+                              row[charIndex]
+                              ? "correctBlock"
+                              : ""
+                            } 
+                        ${this.props.blind.path[rowIndex][Object.keys(this.props.blind.path[rowIndex])[0]] === charIndex ? "transitionBlock" : ""}
+                 
+                      `}
+                          value={row[charIndex] || ""}
+                          readOnly
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div></div>}
           </div>
-                <div className="textarea endword">
-          {heuristic.endword.split("").map((char, index) => {
-            // ดึงแถวล่าสุดที่ถูกยืนยัน
-            const lastConfirmedRowIndex = this.state.confirmedRows.length > 0 
-              ? this.state.confirmedRows[this.state.confirmedRows.length - 1] 
-              : null;
-            
-            const lastConfirmedRow = lastConfirmedRowIndex !== null 
-              ? this.state.rows[lastConfirmedRowIndex] 
-              : [];
+          <div className="textarea endword">
+            {heuristic.endword.split("").map((char, index) => {
+              // ดึงแถวล่าสุดที่ถูกยืนยัน
+              const lastConfirmedRowIndex = this.state.confirmedRows.length > 0
+                ? this.state.confirmedRows[this.state.confirmedRows.length - 1]
+                : null;
 
-            // เช็กว่าตัวอักษรตรงกับ endword หรือไม่
-            const isCorrect = lastConfirmedRow.length === heuristic.endword.length &&
-                              lastConfirmedRow[index]?.toUpperCase() === char.toUpperCase();
+              const lastConfirmedRow = lastConfirmedRowIndex !== null
+                ? this.state.rows[lastConfirmedRowIndex]
+                : [];
 
-            return (
-              <textarea
-                key={index}
-                value={char?.toUpperCase()}
-                className={isCorrect || this.state.winningStatus ? "correctBlock" : ""}
-                readOnly
-              />
-            );
-          })}
+              // เช็กว่าตัวอักษรตรงกับ endword หรือไม่
+              const isCorrect = lastConfirmedRow.length === heuristic.endword.length &&
+                lastConfirmedRow[index]?.toUpperCase() === char.toUpperCase();
+
+              return (
+                <textarea
+                  key={index}
+                  value={char?.toUpperCase()}
+                  className={isCorrect || this.state.winningStatus ? "correctBlock" : ""}
+                  readOnly
+                />
+              );
+            })}
+          </div>
+
+
+
+          {/* Pop-up*/}
+          {this.state.errorStatus ? (
+            <div className="Message error">{this.state.data.message}</div>
+          ) : (
+            null
+          )}
         </div>
-
-
-
-        {/* Pop-up*/}
-        {this.state.errorStatus ? (
-          <div className="Message error">{this.state.data.message}</div>
-        ) : (
-          null
-        )}
-        </div>
-        {this.state.winningStatus?(
+        {this.state.winningStatus ? (
           <div className="Message win">You Win!!!</div>
-        ):(
+        ) : (
           null
         )}
 
         {/* Reset Bttn */}
-        <button class="clearBoardButton" onClick={this.ResetState}>
-          Reset
-        </button>
+        <div className="inter">
+          <button class="clearBoardButton" onClick={this.ResetState}>
+            Reset
+          </button>
 
-        {/* Keyboard */}
-        <div className="keyboard">
-          <div className="keyboardRow">
-            {"QWERTYUIOP".split("").map((char) => (
-              <button
-                key={char}
-                className="button characterButton"
-                onClick={() => this.handleButtonClick(char)}
-              >
-                {char}
+          {/* Keyboard */}
+          <div className="keyboard">
+            <div className="keyboardRow">
+              {"QWERTYUIOP".split("").map((char) => (
+                <button
+                  key={char}
+                  className="button characterButton"
+                  onClick={() => this.handleButtonClick(char)}
+                >
+                  {char}
+                </button>
+              ))}
+            </div>
+            <div className="keyboardRow">
+              <div className="keyboardSpacer"></div>
+              {"ASDFGHJKL".split("").map((char) => (
+                <button
+                  key={char}
+                  className="button characterButton"
+                  onClick={() => this.handleButtonClick(char)}
+                >
+                  {char}
+                </button>
+              ))}
+              <div className="keyboardSpacer"></div>
+            </div>
+            <div className="keyboardRow">
+              <button className="button enterButton" onClick={this.handleEnter}>
+                Enter
               </button>
-            ))}
-          </div>
-          <div className="keyboardRow">
-            <div className="keyboardSpacer"></div>
-            {"ASDFGHJKL".split("").map((char) => (
-              <button
-                key={char}
-                className="button characterButton"
-                onClick={() => this.handleButtonClick(char)}
-              >
-                {char}
-              </button>
-            ))}
-            <div className="keyboardSpacer"></div>
-          </div>
-          <div className="keyboardRow">
-            <button className="button enterButton" onClick={this.handleEnter}>
-              Enter
-            </button>
 
-            {"ZXCVBNM".split("").map((char) => (
-              <button
-                key={char}
-                className="button characterButton"
-                onClick={() => this.handleButtonClick(char)}
-              >
-                {char}
+              {"ZXCVBNM".split("").map((char) => (
+                <button
+                  key={char}
+                  className="button characterButton"
+                  onClick={() => this.handleButtonClick(char)}
+                >
+                  {char}
+                </button>
+              ))}
+              <button className="button deleteButton" onClick={this.handleDelete}>
+                <img
+                  src="https://static-00.iconduck.com/assets.00/backspace-icon-2048x1509-3pqr8k29.png"
+                  alt="-"
+                />
               </button>
-            ))}
-            <button className="button deleteButton" onClick={this.handleDelete}>
-              <img
-                src="https://static-00.iconduck.com/assets.00/backspace-icon-2048x1509-3pqr8k29.png"
-                alt="-"
-              />
-            </button>
+            </div>
           </div>
         </div>
       </div>
@@ -384,157 +475,14 @@ class Header extends Component {
   }
 }
 
-// function App() {
-//   const [data, setData] = useState(null);
-//   const [winningStatus, setWinningStatus] = useState(false);
-//   const [score, setScore] = useState(0);
-
-//   useEffect(() => {
-//     fetchData(3); // ค่าเริ่มต้น
-//   }, []);
-
-//   // ฟังก์ชันที่ parent จะเรียกใช้
-//   const resetChild = () => {
-//     if (childRef.current) {
-//       childRef.current.ResetState();  // เรียกฟังก์ชันใน child component
-//     }
-//   };
-
-//   const fetchData = async (length) => {
-//     try {
-//       const response = await axios.get(`/game?length=${length}&blind=bfs&heuristic=astar`);
-//       setData(response.data);
-//       setWinningStatus(false);
-//       setScore(0);
-//       console.log("Fetched Data:", response.data);
-//     } catch (error) {
-//       console.error("Error fetching data:", error);
-//     }
-//   };
-
-//   const childRef = useRef(null);  // ใช้ ref เพื่อเข้าถึง child component
-
-
-//   return (
-//     <div className="app-container">
-//       {data?.heuristic && (
-//         <Header ref={childRef}
-//           heuristic={data.heuristic}
-//           onWin={(status, rows) => {
-//             setWinningStatus(status);
-//             setScore(rows);
-//           }}
-//         />
-//       )}
-
-//       {winningStatus && (
-//         <div className="popup-overlay">
-//           <div className="popup">
-//             <h2>Statistics</h2>
-//             <div className="stats">
-//               <div className="stat-block">
-//                 <div className="stat-number">{score}</div>
-//                 <div className="stat-label">Score</div>
-//               </div>
-//               <div className="stat-block">
-//                 <div className="stat-number">{data.heuristic?.optimal || 0}</div>
-//                 <div className="stat-label">Optimal</div>
-//               </div>
-//             </div>
-//             <button className="random-button" onClick={() => {
-//               resetChild()
-//               fetchData(Math.floor(Math.random() * 4) + 3)
-//               }}>
-//               Random
-//             </button>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-// function App() {
-//   const [data, setData] = useState(null);
-//   const [winningStatus, setWinningStatus] = useState(false);
-//   const [score, setScore] = useState(0);
-//   const [loading, setLoading] = useState(false);  // Add loading state
-
-//   useEffect(() => {
-//     fetchData(3); // Initial fetch with default length
-//   }, []);
-
-//   const resetChild = () => {
-//     if (childRef.current) {
-//       childRef.current.ResetState();  // Reset child component
-//     }
-//   };
-
-//   const fetchData = async (length) => {
-//     setLoading(true);  // Set loading to true when fetch starts
-//     try {
-//       const response = await axios.get(`/game?length=${length}&blind=bfs&heuristic=astar`);
-//       setData(response.data);
-//       setWinningStatus(false);
-//       setScore(0);
-//       console.log("Fetched Data:", response.data);
-//     } catch (error) {
-//       console.error("Error fetching data:", error);
-//     } finally {
-//       setLoading(false);  // Set loading to false once data is fetched or on error
-//     }
-//   };
-
-//   const childRef = useRef(null);  // Use ref to access child component
-
-//   return (
-//     <div className="app-container">
-//       {loading ? (  // Show loading spinner if data is being fetched
-//         <div className="loading-spinner">Loading...</div>
-//       ) : (
-//         data?.heuristic && (
-//           <Header ref={childRef}
-//             heuristic={data.heuristic}
-//             onWin={(status, rows) => {
-//               setWinningStatus(status);
-//               setScore(rows);
-//             }}
-//           />
-//         )
-//       )}
-
-//       {winningStatus && (
-//         <div className="popup-overlay">
-//           <div className="popup">
-//             <h2>Statistics</h2>
-//             <div className="stats">
-//               <div className="stat-block">
-//                 <div className="stat-number">{score}</div>
-//                 <div className="stat-label">Score</div>
-//               </div>
-//               <div className="stat-block">
-//                 <div className="stat-number">{data.heuristic?.optimal || 0}</div>
-//                 <div className="stat-label">Optimal</div>
-//               </div>
-//             </div>
-//             <button className="random-button" onClick={() => {
-//               resetChild();
-//               fetchData(Math.floor(Math.random() * 4) + 3);
-//             }}>
-//               Random
-//             </button>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
 function App() {
   const [data, setData] = useState(null);
   const [winningStatus, setWinningStatus] = useState(false);
   const [score, setScore] = useState(0);
-  const [loading, setLoading] = useState(false);  // Add loading state
+  const [loading, setLoading] = useState(false);
+  const [ai, setai] = useState(false);
+
+  const childRef = useRef(null);  // Use ref to access child component
 
   useEffect(() => {
     fetchData(3); // Initial fetch with default length
@@ -549,7 +497,7 @@ function App() {
   const fetchData = async (length) => {
     setLoading(true);  // Set loading to true when fetch starts
     try {
-      const response = await axios.get(`/game?length=${length}&blind=bfs&heuristic=astar`);
+      const response = await axios.get(`/game?length=${length}`);
       setData(response.data);
       setWinningStatus(false);
       setScore(0);
@@ -558,10 +506,59 @@ function App() {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);  // Set loading to false once data is fetched or on error
+      setai(false)
     }
   };
 
-  const childRef = useRef(null);  // Use ref to access child component
+  const handleAI = () => {
+    if (childRef.current) {
+      childRef.current.handleAI();  // Call the handleAI method in Header component
+    }
+  };
+
+  const chartData = {
+    labels: ['Heuristic', 'Blind'],
+    datasets: [
+      {
+        label: 'Time Comparison (sec)',
+        // data: [data?.heuristic?.time || 0, data?.heuristic?.time || 0], // ค่าจาก heuristic.time และ blind.time
+        data: [parseFloat(data?.heuristic?.time) || 0, parseFloat(data?.blind?.time) || 0,],
+        backgroundColor: ['rgba(95, 158, 160,0.5)', 'rgba(255, 159, 64, 0.5)'], // สีแถบ
+        borderColor: ['#1e88e5', '#d32f2f'], // สีเส้นขอบ
+        borderWidth: 1,
+      },
+    ],
+    options: {
+      indexAxis: 'y', // This makes the bar chart horizontal
+      scales: {
+        x: {
+          beginAtZero: true,
+        },
+      },
+    },
+  };
+
+  const chartspace = {
+    labels: ['Heuristic', 'Blind'],
+    datasets: [
+      {
+        label: 'Space Comparison (KB)',
+        // data: [data?.heuristic?.time || 0, data?.heuristic?.time || 0], // ค่าจาก heuristic.time และ blind.time
+        data: [parseFloat(data?.heuristic?.space) || 0, parseFloat(data?.blind?.space) || 0,],
+        backgroundColor: ['rgba(95, 158, 160, 0.5)', 'rgba(255, 159, 64, 0.5)'], // สีแถบ
+        borderColor: ['#1e88e5', '#d32f2f'], // สีเส้นขอบ
+        borderWidth: 1,
+      },
+    ],
+    options: {
+      indexAxis: 'y', // This makes the bar chart horizontal
+      scales: {
+        x: {
+          beginAtZero: true,
+        },
+      },
+    },
+  };
 
   return (
     <div className="app-container">
@@ -569,13 +566,51 @@ function App() {
         <div className="loading-spinner">Loading...</div>
       ) : (
         data?.heuristic && (
-          <Header ref={childRef}
-            heuristic={data.heuristic}
-            onWin={(status, rows) => {
-              setWinningStatus(status);
-              setScore(rows);
-            }}
-          />
+          <div>
+            <div className="Navbar">
+              <h1>WORDLADDER</h1>
+              <button className="barbutton" onClick={() => {
+                resetChild();
+                fetchData(Math.floor(Math.random() * 4) + 3);
+              }}>Random</button>
+              <button className="barbutton" onClick={() => {
+                resetChild();
+                fetchData(3);
+              }}>3-letters</button>
+              <button className="barbutton" onClick={() => {
+                resetChild();
+                fetchData(4);
+              }}>4-letters</button>
+              <button className="barbutton" onClick={() => {
+                resetChild();
+                fetchData(5);
+              }}>5-letters</button>
+              <button className="barbutton" onClick={() => {
+                resetChild();
+                fetchData(6);
+              }}>6-letters</button>
+              <button className="barbutton blind" onClick={() => { handleAI(); setai(true); }}>Let's AI do!</button>
+            </div>
+            <Header ref={childRef}
+              heuristic={data.heuristic}
+              blind={data.blind}
+              bfs={data.bfs}
+              onWin={(status, rows) => {
+                setWinningStatus(status);
+                setScore(rows);
+              }}
+            />
+
+            {ai && (
+              <div><h2>Time and Space Comparison: Heuristic vs Blind</h2>
+                <div className="chart-container">
+                  <div className="graph">
+                    <Bar data={chartData} options={chartData.options} />
+                    <Bar data={chartspace} options={chartspace.options} />
+                  </div></div>
+              </div>
+            )}
+          </div>
         )
       )}
 
@@ -596,7 +631,7 @@ function App() {
             </div>
             <button className="random-button" onClick={() => {
               resetChild();
-              fetchData(Math.floor(Math.random() * 4) + 3);
+              fetchData((Math.random() < 0.2 ? 3 : Math.floor(Math.random() * 3) + 4));
             }}>
               Random
             </button>
@@ -606,6 +641,5 @@ function App() {
     </div>
   );
 }
-
 
 export default App;

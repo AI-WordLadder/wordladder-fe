@@ -4,55 +4,70 @@
   box-sizing: border-box;
 }
 
-.button{
-  padding:20px;
-  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+.button {
+  padding: 20px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  /* Smooth transition */
   background-color: #d3d3d3;
 
 }
 
-body{
+body {
   display: grid;
   place-items: center;
   min-height: 100vh;
 }
 
 .deleteButton img {
-  width: 20px;  /* Set the image width */
-  object-fit: contain; /* Ensures the image maintains aspect ratio */
+  width: 20px;
+  /* Set the image width */
+  object-fit: contain;
+  /* Ensures the image maintains aspect ratio */
   margin-left: auto;
   margin-right: auto;
 }
 
-.clearBoardButton{
+.inter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.clearBoardButton {
   color: black;
-  width: 100%;
-  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
-  border-radius: 0%;
+  width: 10%;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  /* Smooth transition */
+  border-radius: 20px;
 
 }
 
 .clearBoardButton:hover {
-  background-color: #f34f43; /* Red background for delete button */
+  background-color: #f34f43;
+  /* Red background for delete button */
   color: white;
 }
-.Message{
-  color:white;
+
+.Message {
+  color: white;
   margin-top: .5rem;
-  border:2px,solid, black;
+  border: 2px, solid, black;
   border-radius: 10px;
-  padding:0.25rem;
+  padding: 0.25rem;
   text-align: center;
 
 }
-.error{
+
+.error {
   background-color: #f34f43;
 }
 
-.win{
+.win {
   background-color: green;
 }
-button{
+
+button {
   /* background-color: #d3d3d3; */
   border: none;
   border-radius: 15%;
@@ -65,37 +80,47 @@ button{
 }
 
 .button:hover {
-  background-color: #45a049; /* Darker green on hover */
-  transform: scale(1.1); /* Slightly enlarge the button */
+  background-color: #45a049;
+  /* Darker green on hover */
+  transform: scale(1.1);
+  /* Slightly enlarge the button */
+}
+
+.keyboard {
+  padding: 0 5rem 5rem 5rem;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Example deleteButton hover effect */
 .button.deleteButton:hover {
-  background-color: #f44336; /* Red background for delete button */
+  background-color: #f44336;
+  /* Red background for delete button */
   transform: scale(1.1);
 }
 
 .enterButton {
   text-transform: capitalize;
   width: 100px;
- }
+}
 
-.row{
+.row {
   display: flex;
   justify-content: center;
-  
+
 }
 
 
-.textarea.startword{
+.textarea.startword {
   justify-content: center;
 }
 
-.textarea.endword{
+.textarea.endword {
   justify-content: center;
 }
 
-.textarea{
+.textarea {
   width: 100%;
   display: flex;
   /* justify-content: center; */
@@ -106,38 +131,39 @@ button{
   padding-bottom: 10px;
   max-height: 15rem;
   overflow-y: auto;
-  margin:0.5rem 0 0.5rem 0;
+  margin: 0.5rem 0 0.5rem 0;
   display: flex;
   flex-direction: column;
-  gap: 8px; /* ระยะห่างระหว่างแต่ละ row */
+  gap: 8px;
+  /* ระยะห่างระหว่างแต่ละ row */
   position: relative;
 }
 
-textarea{
+textarea {
   width: 4.5rem;
   height: 4rem;
   resize: none;
   padding: 1rem 0 1rem 0;
   font-size: 1.2rem;
-  outline: none;  
+  outline: none;
   font-weight: bold;
-  border:2px solid rgba(128,128,128,.5);
+  border: 2px solid rgba(128, 128, 128, .5);
   border-radius: .5rem;
   text-align: center;
   margin: 5px;
 }
 
-.correctBlock{
-  background-color: rgba(0,128,0,.5);
+.correctBlock {
+  background-color: rgba(0, 128, 0, .5);
 }
 
-.transitionBlock{
-  border:2px solid black;
+.transitionBlock {
+  border: 2px solid black;
 }
 
-.gameplay{
+.gameplay {
   margin-bottom: 1rem;
-  display:flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
 }
@@ -217,4 +243,63 @@ textarea{
   font-size: 2rem;
   font-weight: bold;
   color: #007bff;
+}
+
+.Navbar {
+  border-bottom: 1px solid rgb(234, 234, 234);
+  background-color: rgb(235, 235, 235);
+  place-items: left;
+  align-items: center;
+  padding: 1vh 5vw 1vh 5vw;
+  border-radius: 10px;
+  height: fit-content;
+  display: grid;
+  grid-auto-flow: column;
+}
+
+.barbutton {
+  background-color: rgb(235, 235, 235);
+  width: fit-content;
+  height: fit-content;
+  /* padding: 5%; */
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: bold;
+  color: black;
+}
+
+.barbutton:hover {
+  background-color: rgb(199, 199, 199);
+}
+
+.blind {
+  background-color: rgb(151, 244, 213);
+}
+
+.barbutton:hover {
+  background-color: cadetblue;
+}
+
+.heuristic {
+  background-color: lightblue;
+}
+
+.heuristic:hover {
+  background-color: darkcyan;
+}
+
+.answer{
+  display: grid;
+  grid-auto-flow: column;
+  gap: 5vw;
+  margin: 2vh 0 2vh 0;
+}
+
+.graph {
+  display: grid;
+  width: 50%;
+  height: 50%;
+  grid-auto-flow: column;
+  gap: 2vw;
+  margin-top: 2vh;
 }
