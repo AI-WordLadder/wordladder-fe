@@ -1,7 +1,27 @@
 import "./App.css";
 import axios from "axios";
 import { Component, useState, useEffect, useRef } from "react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+
 
 class Header extends Component {
   constructor(props) {
@@ -239,7 +259,7 @@ class Header extends Component {
       this.setState(prevState => ({
         rows: [...prevState.rows, uppercasedLetters]
       }));
-      console.log(this.state.rows)
+      this .state.rows.pop(0)
       console.log("Key split to uppercase:", uppercasedLetters); // For debugging
     });
   };
@@ -248,7 +268,7 @@ class Header extends Component {
     const { heuristic } = this.props;
     const { rows } = this.state;
     console.log("Row Before Random:", rows);
-
+    console.log("Row:" , this.state.rows)
     // const prevWord = this.state.rows[this.state.rows.length - 2].join('').toLowerCase();
     // console.log(this.state.rows);
     if (!this.props.heuristic || !this.props.heuristic.startword || !this.props.heuristic.endword) {
@@ -286,7 +306,7 @@ class Header extends Component {
                           ? "correctBlock"
                           : ""
                         } 
-                        ${this.props.heuristic.path[rowIndex][Object.keys(this.props.heuristic.path[rowIndex])[0]] === charIndex ? "transitionBlock": ""}
+                        ${this.props.heuristic.path[rowIndex][Object.keys(this.props.heuristic.path[rowIndex])[0]] === charIndex ? "transitionBlock" : ""}
                  
                       `}
                       value={row[charIndex] || ""}
@@ -403,6 +423,7 @@ function App() {
   const [winningStatus, setWinningStatus] = useState(false);
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [ai, setai] = useState(false);
 
   const childRef = useRef(null);  // Use ref to access child component
 
@@ -428,6 +449,7 @@ function App() {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);  // Set loading to false once data is fetched or on error
+      setai(false)
     }
   };
 
@@ -435,6 +457,34 @@ function App() {
     if (childRef.current) {
       childRef.current.handleAI();  // Call the handleAI method in Header component
     }
+  };
+
+  const chartData = {
+    labels: ['Heuristic', 'Blind'],
+    datasets: [
+      {
+        label: 'Time Comparison (sec)',
+        // data: [data?.heuristic?.time || 0, data?.heuristic?.time || 0], // ค่าจาก heuristic.time และ blind.time
+        data: [parseFloat(data?.heuristic?.time) || 0, parseFloat(data?.blind?.time) || 0,],
+        backgroundColor: ['#42a5f5', '#ff7043'], // สีแถบ
+        borderColor: ['#1e88e5', '#d32f2f'], // สีเส้นขอบ
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartspace = {
+    labels: ['Heuristic', 'Blind'],
+    datasets: [
+      {
+        label: 'Space Comparison (KB)',
+        // data: [data?.heuristic?.time || 0, data?.heuristic?.time || 0], // ค่าจาก heuristic.time และ blind.time
+        data: [parseFloat(data?.heuristic?.space) || 0, parseFloat(data?.blind?.space) || 0,],
+        backgroundColor: ['#42a5f5', '#ff7043'], // สีแถบ
+        borderColor: ['#1e88e5', '#d32f2f'], // สีเส้นขอบ
+        borderWidth: 1,
+      },
+    ],
   };
 
   return (
@@ -466,7 +516,7 @@ function App() {
                 resetChild();
                 fetchData(6);
               }}>6-letters</button>
-              <button className="barbutton blind" onClick={handleAI}>Let's AI do!</button>
+              <button className="barbutton blind" onClick={() => { handleAI(); setai(true); }}>Let's AI do!</button>
             </div>
             <Header ref={childRef}
               heuristic={data.heuristic}
@@ -477,7 +527,15 @@ function App() {
               }}
             />
 
-            
+            {ai && (
+              <div><h2>Time and Space Comparison: Heuristic vs Blind</h2>
+                <div className="chart-container">
+                  <div className="graph">
+                  <Bar data={chartData} />
+                  <Bar data={chartspace} />
+                </div></div>
+              </div>
+            )}
           </div>
         )
       )}
