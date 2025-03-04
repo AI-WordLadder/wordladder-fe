@@ -260,7 +260,11 @@ class Header extends Component {
   };
 
   handleAI = () => {
-    this.state.showAIRows = false;
+    this.setState({ showAIRows: false });
+    // if (this.state.showAIRows === false){
+    //   this.toggleAIRows()
+    // }
+    // else{
     // Push the uppercase version of the words to rows
     this.props.heuristic.path.slice(1).forEach((item) => {
       const key = Object.keys(item)[0];
@@ -283,9 +287,10 @@ class Header extends Component {
         airows: [...prevState.airows, uppercasedLetters]
       }));
       this.state.airows.pop(0);
-      this.state.showAIRows = true;
+      this.setState({ showAIRows: true });
       console.log("Key split to uppercase:", uppercasedLetters); // For debugging
     });
+    // }
   };
 
   render() {
@@ -316,34 +321,34 @@ class Header extends Component {
 
           {/* Dynamic Rows */}
           <div className="answer">
-              <div>{this.state.showAIRows && <h2>Heuristic Search</h2>}
-            <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
-              {rows.map((row, rowIndex) => (
-                <div key={rowIndex} className="row">
-                  {heuristic.startword.split("").map((_, charIndex) => {
-                    console.log(
-                      `Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`
-                    ); // 🔹 ดูค่าของ charIndex และ rowIndex
-                    return (
-                      <textarea
-                        key={charIndex}
-                        className={`block 
+            <div>{this.state.showAIRows && <h2>Heuristic Search</h2>}
+              <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
+                {rows.map((row, rowIndex) => (
+                  <div key={rowIndex} className="row">
+                    {heuristic.startword.split("").map((_, charIndex) => {
+                      console.log(
+                        `Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`
+                      ); // 🔹 ดูค่าของ charIndex และ rowIndex
+                      return (
+                        <textarea
+                          key={charIndex}
+                          className={`block 
                         ${this.props.heuristic.endword[charIndex].toUpperCase() ===
-                            row[charIndex]
-                            ? "correctBlock"
-                            : ""
-                          } 
+                              row[charIndex]
+                              ? "correctBlock"
+                              : ""
+                            } 
                         ${this.props.heuristic.path[rowIndex][Object.keys(this.props.heuristic.path[rowIndex])[0]] === charIndex ? "transitionBlock" : ""}
                  
                       `}
-                        value={row[charIndex] || ""}
-                        readOnly
-                      />
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
+                          value={row[charIndex] || ""}
+                          readOnly
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
             {this.state.showAIRows && <div><h2>Blind search</h2>
               <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
@@ -417,7 +422,7 @@ class Header extends Component {
 
         {/* Reset Bttn */}
         <div className="inter">
-          <button class="clearBoardButton" onClick={this.ResetState}>
+          <button class="clearBoardButton" onClick={() => { this.ResetState(); this.props.setai(false); }}>
             Reset
           </button>
 
@@ -481,8 +486,12 @@ function App() {
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(false);
   const [ai, setai] = useState(false);
-
   const childRef = useRef(null);  // Use ref to access child component
+  const [showPopup, setShowPopup] = useState(true); // ✅ Popup state
+
+  const togglePopup = () => {
+    setShowPopup((prev) => !prev); // ✅ Toggle popup visibility
+  };
 
   useEffect(() => {
     fetchData(3); // Initial fetch with default length
@@ -589,10 +598,11 @@ function App() {
                 resetChild();
                 fetchData(6);
               }}>6-letters</button>
-              <button className="barbutton blind" onClick={() => { handleAI(); setai(true); }}>Let's AI do!</button>
+              <button className="barbutton blind" onClick={() => { handleAI(); setai(true); }}>Let AI do!</button>
             </div>
             <Header ref={childRef}
               heuristic={data.heuristic}
+              setai={setai}
               blind={data.blind}
               bfs={data.bfs}
               onWin={(status, rows) => {
@@ -612,6 +622,23 @@ function App() {
             )}
           </div>
         )
+      )}
+
+      {showPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h2>How to Play</h2>
+            <div className="text history">This game is called "Word Ladder" and was invented by Lewis Carroll in 1877.</div>
+            <h3>Rules</h3>
+            <div className="text rule">Weave your way from the start word to the end word.
+            Each word you enter can only change 1 letter from the word above it.</div>
+            <h3>Example</h3>
+            <img alt="how to play" src="pop.png"></img>
+            <div>
+            <button className="close-button" onClick={togglePopup}>Close</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Only show pop-up if not loading and winningStatus is true */}
