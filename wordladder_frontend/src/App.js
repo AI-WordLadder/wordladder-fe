@@ -1,5 +1,6 @@
 import "./App.css";
 import axios from "axios";
+import ReactDOM from 'react-dom'
 import { Component, useState, useEffect, useRef } from "react";
 import {
   Chart as ChartJS,
@@ -12,6 +13,12 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircleQuestion } from '@fortawesome/free-regular-svg-icons'
+
+
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -20,8 +27,6 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
-
 
 class Header extends Component {
   constructor(props) {
@@ -599,6 +604,7 @@ function App() {
                 fetchData(6);
               }}>6-letters</button>
               <button className="barbutton blind" onClick={() => { handleAI(); setai(true); }}>Let AI do!</button>
+              <button className="barbutton info" onClick={togglePopup}><FontAwesomeIcon icon={faCircleQuestion} /></button>
             </div>
             <Header ref={childRef}
               heuristic={data.heuristic}
