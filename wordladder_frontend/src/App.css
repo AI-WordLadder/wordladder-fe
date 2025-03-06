@@ -47,6 +47,7 @@ body {
   background-color: #f34f43;
   /* Red background for delete button */
   color: white;
+  cursor : pointer
 }
 
 .Message {
@@ -83,6 +84,7 @@ button {
   background-color: #45a049;
   /* Darker green on hover */
   transform: scale(1.1);
+  cursor : pointer
   /* Slightly enlarge the button */
 }
 
@@ -313,6 +315,7 @@ textarea {
 
 .barbutton:hover {
   background-color: rgb(199, 199, 199);
+  cursor : pointer
 }
 
 .blind {
