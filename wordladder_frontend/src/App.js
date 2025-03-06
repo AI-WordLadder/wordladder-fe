@@ -1,6 +1,5 @@
 import "./App.css";
 import axios from "axios";
-import ReactDOM from 'react-dom'
 import { Component, useState, useEffect, useRef } from "react";
 import {
   Chart as ChartJS,
@@ -354,6 +353,7 @@ class Header extends Component {
                   </div>
                 ))}
               </div>
+              {this.state.showAIRows && <h2>Optimal : {this.props.heuristic.optimal}</h2>}
             </div>
             {this.state.showAIRows && <div><h2>Blind search</h2>
               <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
@@ -382,7 +382,8 @@ class Header extends Component {
                     })}
                   </div>
                 ))}
-              </div></div>}
+              </div><h2>Optimal : {this.props.blind.optimal}</h2></div>
+              }
           </div>
           <div className="textarea endword">
             {heuristic.endword.split("").map((char, index) => {
