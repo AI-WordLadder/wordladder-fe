@@ -325,7 +325,7 @@ class Header extends Component {
 
           {/* Dynamic Rows */}
           <div className="answer">
-            <div>{this.state.showAIRows && <h2>Heuristic Search</h2>}
+            <div>{this.state.showAIRows && <h2>Heuristic Search ({this.props.heuristic.technique})</h2>}
               <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
                 {rows.map((row, rowIndex) => (
                   <div key={rowIndex} className="row">
@@ -355,7 +355,7 @@ class Header extends Component {
               </div>
               {this.state.showAIRows && <h2>Optimal : {this.props.heuristic.optimal}</h2>}
             </div>
-            {this.state.showAIRows && <div><h2>Blind search</h2>
+            {this.state.showAIRows && <div><h2>Blind search ({this.props.blind.technique})</h2>
               <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
                 {airows.map((row, rowIndex) => (
                   <div key={rowIndex} className="row">
