@@ -60,6 +60,12 @@ body {
 
 }
 
+.closewin{
+  width:fit-content;
+  color: #555;
+  cursor : pointer
+}
+
 .error {
   background-color: #f34f43;
 }

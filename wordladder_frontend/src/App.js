@@ -40,6 +40,7 @@ class Header extends Component {
       wordlength: props.heuristic.startword.length,
       rows: [[]], // Store multiple rows of textareas
       airows: [[]], // Store multiple rows of AI textareas
+      aiirows: [[]],
       filledRows: [], // เก็บ rowIndex ที่ต้องเปลี่ยนเป็น "filled"
       changedRows: [],
       confirmedRows: [],
@@ -238,18 +239,6 @@ class Header extends Component {
     }
   };
 
-  HandleCorrectBlock = (rowIndex, charIndex) => {
-    if (!this.state.data || rowIndex === 0) {
-      return false; // ถ้า rowIndex = 0 ไม่มีแถวก่อนหน้าให้เช็ค
-    }
-
-    const prevRow = this.state.rows[rowIndex - 1]; // ดึงแถวก่อนหน้า
-    return (
-      prevRow &&
-      this.state.data.valid === true && // ต้องแน่ใจว่าผลลัพธ์ valid
-      charIndex === this.state.data.change // ต้องตรงกับ index ที่เปลี่ยน
-    );
-  };
 
   generateRandomNumber = () => {
     const randomValue = Math.floor(Math.random() * (6 - 3 + 1)) + 3;
@@ -276,9 +265,9 @@ class Header extends Component {
 
       // Update state using setState (avoid direct mutation)
       this.setState(prevState => ({
-        rows: [...prevState.rows, uppercasedLetters]
+        aiirows: [...prevState.aiirows, uppercasedLetters]
       }));
-      this.state.rows.pop(0)
+      this.state.aiirows.pop(0)
       console.log("Key split to uppercase:", uppercasedLetters); // For debugging
     });
 
@@ -301,6 +290,7 @@ class Header extends Component {
     const { heuristic } = this.props;
     const { rows } = this.state;
     const { airows } = this.state;
+    const { aiirows } = this.state;
     console.log("Row Before Random:", rows);
     console.log("Row:", this.state.rows)
     console.log("AI Row:", this.state.airows)
@@ -322,11 +312,8 @@ class Header extends Component {
             ))}
           </div>
 
-
-          {/* Dynamic Rows */}
-          <div className="answer">
-            <div>{this.state.showAIRows && <h2>Heuristic Search ({this.props.heuristic.technique})</h2>}
-              <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
+            {!this.state.showAIRows && <div>
+            <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
                 {rows.map((row, rowIndex) => (
                   <div key={rowIndex} className="row">
                     {heuristic.startword.split("").map((_, charIndex) => {
@@ -342,7 +329,49 @@ class Header extends Component {
                               ? "correctBlock"
                               : ""
                             } 
-                        ${this.props.heuristic.path[rowIndex][Object.keys(this.props.heuristic.path[rowIndex])[0]] === charIndex ? "transitionBlock" : ""}
+                             ${this.state.rows[0][charIndex] !== this.props.heuristic.startword[charIndex].toUpperCase()&&
+                            row[charIndex] != null &&
+                            row===this.state.rows[0]
+                            ? "transitionBlock"
+                            : ""}
+                            
+                          ${row[charIndex] != null &&
+                            rowIndex > 0 && row[charIndex] !== this.state.rows[rowIndex - 1][charIndex] &&
+                            row!==this.state.rows[0]
+                            ? "transitionBlock"
+                            : ""}
+                 
+                      `}
+                          value={row[charIndex] || ""}
+                          readOnly
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div></div>
+            }
+          {/* Dynamic Rows */}
+          <div className="answer">
+            {this.state.showAIRows && <div><h2>Heuristic Search ({this.props.heuristic.technique})</h2>
+            
+              <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
+                {aiirows.map((row, rowIndex) => (
+                  <div key={rowIndex} className="row">
+                    {heuristic.startword.split("").map((_, charIndex) => {
+                      console.log(
+                        `Row: ${rowIndex}, CharIndex: ${charIndex} , Char: ${row[charIndex]}`
+                      ); // 🔹 ดูค่าของ charIndex และ rowIndex
+                      return (
+                        <textarea
+                          key={charIndex}
+                          className={`block 
+                        ${this.props.heuristic.endword[charIndex].toUpperCase() ===
+                              row[charIndex]
+                              ? "correctBlock"
+                              : ""
+                            } 
+                        ${this.props.heuristic.path[rowIndex+1][Object.keys(this.props.heuristic.path[rowIndex+1])[0]] === charIndex ? "transitionBlock" : ""}
                  
                       `}
                           value={row[charIndex] || ""}
@@ -354,7 +383,7 @@ class Header extends Component {
                 ))}
               </div>
               {this.state.showAIRows && <h2>Optimal : {this.props.heuristic.optimal}</h2>}
-            </div>
+            </div>}
             {this.state.showAIRows && <div><h2>Blind search ({this.props.blind.technique})</h2>
               <div className="textarea input" ref={(el) => (this.scrollRef = el)}>
                 {airows.map((row, rowIndex) => (
@@ -372,7 +401,7 @@ class Header extends Component {
                               ? "correctBlock"
                               : ""
                             } 
-                        ${this.props.blind.path[rowIndex][Object.keys(this.props.blind.path[rowIndex])[0]] === charIndex ? "transitionBlock" : ""}
+                        ${this.props.blind.path[rowIndex+1][Object.keys(this.props.blind.path[rowIndex+1])[0]] === charIndex ? "transitionBlock" : ""}
                  
                       `}
                           value={row[charIndex] || ""}
@@ -494,9 +523,15 @@ function App() {
   const [ai, setai] = useState(false);
   const childRef = useRef(null);  // Use ref to access child component
   const [showPopup, setShowPopup] = useState(true); // ✅ Popup state
+  const [showWin, setShowWin] = useState(true);
 
   const togglePopup = () => {
     setShowPopup((prev) => !prev); // ✅ Toggle popup visibility
+  };
+
+  
+  const toggleWin = () => {
+    setShowWin((prev) => !prev); // ✅ Toggle popup visibility
   };
 
   useEffect(() => {
@@ -614,6 +649,7 @@ function App() {
               bfs={data.bfs}
               onWin={(status, rows) => {
                 setWinningStatus(status);
+                toggleWin()
                 setScore(rows);
               }}
             />
@@ -649,8 +685,8 @@ function App() {
       )}
 
       {/* Only show pop-up if not loading and winningStatus is true */}
-      {!loading && winningStatus && (
-        <div className="popup-overlay">
+      {!loading && winningStatus && showWin && (
+        <div className="popup-overlay" >
           <div className="popup">
             <h2>Statistics</h2>
             <div className="stats">
@@ -668,7 +704,7 @@ function App() {
               fetchData((Math.random() < 0.2 ? 3 : Math.floor(Math.random() * 3) + 4));
             }}>
               Random
-            </button>
+            </button><button className="closewin" onClick={toggleWin}>close</button>
           </div>
         </div>
       )}
