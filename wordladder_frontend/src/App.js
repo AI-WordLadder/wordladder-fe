@@ -523,7 +523,7 @@ function App() {
   const [ai, setai] = useState(false);
   const childRef = useRef(null);  // Use ref to access child component
   const [showPopup, setShowPopup] = useState(true); // ✅ Popup state
-  const [showWin, setShowWin] = useState(true);
+  const [showWin, setShowWin] = useState(false);
 
   const togglePopup = () => {
     setShowPopup((prev) => !prev); // ✅ Toggle popup visibility
@@ -550,6 +550,7 @@ function App() {
       const response = await axios.get(`/game?length=${length}`);
       setData(response.data);
       setWinningStatus(false);
+      setShowWin(false);
       setScore(0);
       console.log("Fetched Data:", response.data);
     } catch (error) {
